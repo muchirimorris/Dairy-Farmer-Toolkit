@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "386479265223",
+    "project_id": "dairy-tooolkit",
+    "storage_bucket": "dairy-tooolkit.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386479265223:android:9ff3a343dbb13b7f42f5e2",
+        "android_client_info": {
+          "package_name": "com.example.dairy_farmer_toolkit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDW5TEJ5JWrGmU9MOSNSEV3tIDx43fPvS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
