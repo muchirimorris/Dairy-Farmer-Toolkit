@@ -36,10 +36,12 @@ dependencies:
   # Local offline storage
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  intl: ^0.19.0
 
   # File/image picking
   image_picker: ^1.1.2
   cached_network_image: ^3.3.1
+  flutter_image_compress: ^2.3.0
 
 dev_dependencies:
   flutter_test:
