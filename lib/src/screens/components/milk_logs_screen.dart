@@ -26,7 +26,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
   void initState() {
     super.initState();
     _fetchRegisteredAnimals();
-    // Don't call _updateDateTimeControllers here - wait for context
   }
 
   @override
@@ -40,7 +39,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
 
   void _updateDateTimeControllers() {
     _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
-    _timeController.text = _selectedTime.format(context); // Now context is available
+    _timeController.text = _selectedTime.format(context);
   }
 
   Future<void> _fetchRegisteredAnimals() async {
@@ -98,7 +97,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    // Combine date and time
     final logDateTime = DateTime(
       _selectedDate.year,
       _selectedDate.month,
@@ -162,17 +160,21 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
 
   void _openAddLogForm(BuildContext context,
       {String? docId, Map<String, dynamic>? currentData}) {
+    
+    TextEditingController quantityController = TextEditingController();
+    String? selectedAnimalId;
+    String? selectedAnimalName;
+    DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = TimeOfDay.now();
+    
     if (currentData != null) {
-      _selectedAnimalId = currentData["animalId"];
-      _selectedAnimalName = currentData["animalName"];
-      _quantityController.text = currentData["quantity"].toString();
+      selectedAnimalId = currentData["animalId"];
+      selectedAnimalName = currentData["animalName"];
+      quantityController.text = currentData["quantity"].toString();
       
       final date = (currentData["date"] as Timestamp).toDate();
-      _selectedDate = date;
-      _selectedTime = TimeOfDay.fromDateTime(date);
-      _updateDateTimeControllers();
-    } else {
-      _resetForm();
+      selectedDate = date;
+      selectedTime = TimeOfDay.fromDateTime(date);
     }
 
     showModalBottomSheet(
@@ -181,169 +183,384 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16,
-            right: 16,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                docId == null ? "➕ Add Milk Log" : "✏️ Edit Milk Log",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 20),
+      builder: (context) => StatefulBuilder(
+        builder: (BuildContext context, StateSetter setModalState) {
+          TextEditingController dateController = TextEditingController(
+            text: DateFormat('yyyy-MM-dd').format(selectedDate),
+          );
+          TextEditingController timeController = TextEditingController(
+            text: selectedTime.format(context),
+          );
 
-              // Animal Selection
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: "Select Animal *",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.pets),
-                ),
-                value: _selectedAnimalId,
-                items: _buildAnimalDropdownItems(),
-                onChanged: (String? val) {
-                  setState(() {
-                    _selectedAnimalId = val;
-                    if (val != null) {
-                      final selectedAnimal = _animals.firstWhere((a) => a["id"] == val);
-                      _selectedAnimalName = selectedAnimal["name"].toString();
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
+          Future<void> selectDate() async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: selectedDate,
+              firstDate: DateTime(2020),
+              lastDate: DateTime.now(),
+            );
+            if (picked != null && picked != selectedDate) {
+              setModalState(() {
+                selectedDate = picked;
+                dateController.text = DateFormat('yyyy-MM-dd').format(selectedDate);
+              });
+            }
+          }
 
-              // Quantity Input
-              TextField(
-                controller: _quantityController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "Milk Quantity (Liters) *",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.local_drink),
-                  hintText: "e.g., 12.5",
-                ),
-              ),
-              const SizedBox(height: 16),
+          Future<void> selectTime() async {
+            final TimeOfDay? picked = await showTimePicker(
+              context: context,
+              initialTime: selectedTime,
+            );
+            if (picked != null && picked != selectedTime) {
+              setModalState(() {
+                selectedTime = picked;
+                timeController.text = selectedTime.format(context);
+              });
+            }
+          }
 
-              // Date and Time Selection
-              Row(
+          Future<void> saveMilkLog() async {
+            if (selectedAnimalId == null || quantityController.text.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Please fill all required fields"),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return;
+            }
+
+            final user = FirebaseAuth.instance.currentUser;
+            if (user == null) return;
+
+            final logDateTime = DateTime(
+              selectedDate.year,
+              selectedDate.month,
+              selectedDate.day,
+              selectedTime.hour,
+              selectedTime.minute,
+            );
+
+            final logData = {
+              "animalId": selectedAnimalId,
+              "animalName": selectedAnimalName ?? "Unknown",
+              "quantity": double.tryParse(quantityController.text) ?? 0,
+              "date": logDateTime,
+              "timestamp": FieldValue.serverTimestamp(),
+            };
+
+            final logsRef = FirebaseFirestore.instance
+                .collection("farmers")
+                .doc(user.uid)
+                .collection("milk_logs");
+
+            try {
+              if (docId == null) {
+                await logsRef.add(logData);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("✅ Milk log saved for $selectedAnimalName"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else {
+                await logsRef.doc(docId).update(logData);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("✅ Milk log updated for $selectedAnimalName"),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              }
+
+              Navigator.pop(context);
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("❌ Error saving milk log: $e"),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+
+          return SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 16,
+                right: 16,
+                top: 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _dateController,
-                      decoration: const InputDecoration(
-                        labelText: "Date",
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.calendar_today),
-                      ),
-                      readOnly: true,
-                      onTap: () => _selectDate(context),
+                  Text(
+                    docId == null ? "➕ Add Milk Log" : "✏️ Edit Milk Log",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _timeController,
-                      decoration: const InputDecoration(
-                        labelText: "Time",
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.access_time),
-                      ),
-                      readOnly: true,
-                      onTap: () => _selectTime(context),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        _resetForm();
-                        Navigator.pop(context);
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text("Cancel"),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_selectedAnimalId == null || _quantityController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please fill all required fields"),
-                              backgroundColor: Colors.red,
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection("animals")
+                        .where("farmerId", isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: "Loading animals...",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.pets),
+                          ),
+                          items: const [],
+                          onChanged: null,
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: "Error loading animals",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.error),
+                          ),
+                          items: const [],
+                          onChanged: null,
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: "No animals found",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.warning),
+                          ),
+                          items: const [],
+                          onChanged: null,
+                        );
+                      }
+
+                      final animals = snapshot.data!.docs
+                          .map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            final tagNumber = data['tagNumber'];
+                            final hasTagNumber = tagNumber != null && tagNumber.toString().trim().isNotEmpty;
+                            
+                            return {
+                              "id": doc.id,
+                              "name": data['name'] as String? ?? 'Unknown',
+                              "tagNumber": hasTagNumber ? tagNumber.toString().trim() : null,
+                              "productionStatus": data['productionStatus'] as String? ?? 'Unknown',
+                            };
+                          })
+                          .toList();
+
+                      final milkingAnimals = animals.where((animal) => 
+                          (animal["productionStatus"] ?? "").toString().toLowerCase().contains("milking"))
+                          .toList();
+
+                      if (milkingAnimals.isEmpty) {
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: "No milking animals found",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.warning),
+                          ),
+                          items: const [],
+                          onChanged: null,
+                        );
+                      }
+
+                      return DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: "Select Animal *",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.pets),
+                        ),
+                        value: selectedAnimalId,
+                        items: milkingAnimals.map<DropdownMenuItem<String>>((animal) {
+                          final animalName = animal["name"] as String? ?? 'Unknown';
+                          final tagNumber = animal["tagNumber"] as String?;
+                          final hasTagNumber = tagNumber != null && tagNumber.isNotEmpty;
+                          
+                          return DropdownMenuItem<String>(
+                            value: animal["id"] as String,
+                            child: Container(
+                              height: 40,
+                              child: hasTagNumber 
+                                  ? Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                animalName,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Text(
+                                                "Tag: $tagNumber",
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.grey,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        animalName,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                             ),
                           );
-                          return;
-                        }
-                        _saveMilkLog(docId: docId);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        docId == null ? "Save Log" : "Update Log",
-                        style: const TextStyle(fontSize: 16, color: Colors.white),
-                      ),
+                        }).toList(),
+                        onChanged: (String? val) {
+                          setModalState(() {
+                            selectedAnimalId = val;
+                            if (val != null) {
+                              final selectedAnimal = milkingAnimals.firstWhere(
+                                (a) => a["id"] == val,
+                                orElse: () => {"name": "Unknown", "tagNumber": null}
+                              );
+                              selectedAnimalName = selectedAnimal["name"] as String? ?? "Unknown";
+                            }
+                          });
+                        },
+                        selectedItemBuilder: (BuildContext context) {
+                          return milkingAnimals.map<Widget>((animal) {
+                            final animalName = animal["name"] as String? ?? 'Unknown';
+                            final tagNumber = animal["tagNumber"] as String?;
+                            final hasTagNumber = tagNumber != null && tagNumber.isNotEmpty;
+                            
+                            return Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                hasTagNumber ? "$animalName (Tag: $tagNumber)" : animalName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList();
+                        },
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextField(
+                    controller: quantityController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Milk Quantity (Liters) *",
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.local_drink),
+                      hintText: "e.g., 12.5",
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: dateController,
+                          decoration: const InputDecoration(
+                            labelText: "Date",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.calendar_today),
+                          ),
+                          readOnly: true,
+                          onTap: () => selectDate(),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: timeController,
+                          decoration: const InputDecoration(
+                            labelText: "Time",
+                            border: OutlineInputBorder(),
+                            prefixIcon: Icon(Icons.access_time),
+                          ),
+                          readOnly: true,
+                          onTap: () => selectTime(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text("Cancel"),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: saveMilkLog,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text(
+                            docId == null ? "Save Log" : "Update Log",
+                            style: const TextStyle(fontSize: 16, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  List<DropdownMenuItem<String>> _buildAnimalDropdownItems() {
-    // Filter only milking animals
-    final milkingAnimals = _animals.where((animal) => 
-        (animal["productionStatus"] ?? "").toString().toLowerCase() == "milking");
-
-    return milkingAnimals.map<DropdownMenuItem<String>>((animal) {
-      return DropdownMenuItem<String>(
-        value: animal["id"],
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(animal["name"] ?? "Unknown"),
-            Text(
-              "Tag: ${animal["tagNumber"]}",
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      );
-    }).toList();
-  }
-
-  // 🟢 Helpers to calculate totals
   double _calculateDailyTotal(List<QueryDocumentSnapshot> logs) {
     final today = DateTime.now();
     return logs
@@ -495,12 +712,10 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
 
                   final logs = snapshot.data!.docs;
 
-                  // ✅ Calculate totals
                   final dailyTotal = _calculateDailyTotal(logs);
                   final weeklyTotal = _calculateWeeklyTotal(logs);
                   final monthlyTotal = _calculateMonthlyTotal(logs);
 
-                  // ✅ Group logs by animal
                   final Map<String, List<QueryDocumentSnapshot>> groupedLogs = {};
                   for (var doc in logs) {
                     final data = doc.data() as Map<String, dynamic>;
@@ -511,7 +726,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   return ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      // Summary Cards
                       Row(
                         children: [
                           _buildSummaryCard("Today", dailyTotal, Icons.today, Colors.green),
@@ -523,7 +737,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Quick Stats
                       Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -543,7 +756,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                               ),
                               const SizedBox(height: 12),
                               _buildStatRow("Total Animals Milking", 
-                                  _animals.where((a) => (a["productionStatus"] ?? "").toString().toLowerCase() == "milking").length.toString()),
+                                  _animals.where((a) => (a["productionStatus"] ?? "").toString().toLowerCase().contains("milking")).length.toString()),
                               _buildStatRow("Total Logs Today", 
                                   logs.where((doc) {
                                     final data = doc.data() as Map<String, dynamic>;
@@ -560,7 +773,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Animal logs
                       const Text(
                         "🐄 Animal Milk Records",
                         style: TextStyle(
