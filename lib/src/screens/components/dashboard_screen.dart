@@ -9,6 +9,11 @@ import 'package:dairy_farmer_toolkit/src/screens/components/animals_screen.dart'
 import 'package:dairy_farmer_toolkit/src/screens/components/milk_logs_screen.dart';
 import 'package:intl/intl.dart';
 
+import '../../models/animal_model.dart';
+import '../../models/milk_log_model.dart';
+import '../../repositories/animal_repository.dart';
+import '../../repositories/milk_log_repository.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
@@ -17,25 +22,21 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  late Stream<QuerySnapshot> _animalsStream;
-  late Stream<QuerySnapshot> _milkLogsStream;
+  late Stream<List<AnimalModel>> _animalsStream;
+  late Stream<List<MilkLogModel>> _milkLogsStream;
+  
+  final AnimalRepository _animalRepo = AnimalRepository();
+  final MilkLogRepository _milkLogRepo = MilkLogRepository();
 
   @override
   void initState() {
     super.initState();
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      _animalsStream = FirebaseFirestore.instance
-          .collection("animals")
-          .where("farmerId", isEqualTo: user.uid)
-          .snapshots();
-
-      _milkLogsStream = FirebaseFirestore.instance
-          .collection("farmers")
-          .doc(user.uid)
-          .collection("milk_logs")
-          .orderBy("date", descending: true)
-          .snapshots();
+      _animalRepo.syncAnimals(user.uid);
+      _milkLogRepo.syncMilkLogs(user.uid);
+      _animalsStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
+      _milkLogsStream = _milkLogRepo.getMilkLogsStream(user.uid).asBroadcastStream();
     }
   }
 
@@ -194,7 +195,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildQuickStatsSection() {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<AnimalModel>>(
       stream: _animalsStream,
       builder: (context, snapshot) {
         int totalAnimals = 0;
@@ -202,15 +203,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         int pregnantAnimals = 0;
 
         if (snapshot.hasData) {
-          final animals = snapshot.data!.docs;
+          final animals = snapshot.data!;
           totalAnimals = animals.length;
-          milkingAnimals = animals.where((doc) {
-            final animal = doc.data() as Map<String, dynamic>;
-            return (animal["productionStatus"] ?? "").toString().toLowerCase() == "milking";
+          milkingAnimals = animals.where((animal) {
+            return animal.productionStatus.toLowerCase() == "milking";
           }).length;
-          pregnantAnimals = animals.where((doc) {
-            final animal = doc.data() as Map<String, dynamic>;
-            return (animal["reproductiveStatus"] ?? "").toString().toLowerCase() == "pregnant";
+          pregnantAnimals = animals.where((animal) {
+            return animal.reproductiveStatus.toLowerCase() == "pregnant";
           }).length;
         }
 
@@ -246,14 +245,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildMilkProductionLineChart() {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<MilkLogModel>>(
       stream: _milkLogsStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _buildChartPlaceholder("Loading milk data...");
         }
 
-        final logs = snapshot.data!.docs;
+        final logs = snapshot.data!;
         if (logs.isEmpty) {
           return _buildChartPlaceholder("No milk data available");
         }
@@ -349,7 +348,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Bar
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 100.0 * heightPercentage, // Fixed: changed 100 to 100.0
+                        height: 100.0 * heightPercentage, 
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
@@ -410,7 +409,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  List<MilkProductionData> _prepareChartData(List<QueryDocumentSnapshot> logs) {
+  List<MilkProductionData> _prepareChartData(List<MilkLogModel> logs) {
     final now = DateTime.now();
     final Map<String, double> dailyProduction = {};
 
@@ -424,10 +423,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     // Sum milk production by day
-    for (var doc in logs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final date = (data["date"] as Timestamp).toDate();
-      final quantity = (data["quantity"] as num).toDouble();
+    for (var log in logs) {
+      final date = log.date;
+      final quantity = log.quantity;
       
       if (date.isAfter(now.subtract(const Duration(days: 7)))) {
         final key = DateFormat('E').format(date);
@@ -445,7 +443,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTodaysOverview() {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<MilkLogModel>>(
       stream: _milkLogsStream,
       builder: (context, snapshot) {
         double todaysMilk = 0.0;
@@ -453,25 +451,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         if (snapshot.hasData) {
           final today = DateTime.now();
-          final logs = snapshot.data!.docs;
+          final logs = snapshot.data!;
           
-          todaysLogs = logs.where((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final date = (data["date"] as Timestamp).toDate();
+          todaysLogs = logs.where((log) {
+            final date = log.date;
             return date.year == today.year &&
                    date.month == today.month &&
                    date.day == today.day;
           }).length;
 
           todaysMilk = logs
-              .where((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                final date = (data["date"] as Timestamp).toDate();
+              .where((log) {
+                final date = log.date;
                 return date.year == today.year &&
                        date.month == today.month &&
                        date.day == today.day;
               })
-              .fold(0.0, (sum, doc) => sum + ((doc.data() as Map<String, dynamic>)["quantity"] as num).toDouble());
+              .fold(0.0, (sum, log) => sum + log.quantity);
         }
 
         return Card(
@@ -588,7 +584,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildRecentActivity() {
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<MilkLogModel>>(
       stream: _milkLogsStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -600,7 +596,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         }
 
-        final logs = snapshot.data!.docs;
+        final logs = snapshot.data!;
         if (logs.isEmpty) {
           return Card(
             elevation: 2,
@@ -645,11 +641,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...recentLogs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final quantity = data["quantity"];
-                  final animalName = data["animalName"] ?? "Unknown";
-                  final date = (data["date"] as Timestamp).toDate();
+                ...recentLogs.map((log) {
+                  final quantity = log.quantity;
+                  final animalName = log.animalName;
+                  final date = log.date;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),

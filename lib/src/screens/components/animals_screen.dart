@@ -1,14 +1,36 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dairy_farmer_toolkit/src/navigation/main_layout.dart';
 import 'package:intl/intl.dart';
 
-class AnimalsScreen extends StatelessWidget {
+import '../../models/animal_model.dart';
+import '../../repositories/animal_repository.dart';
+
+class AnimalsScreen extends StatefulWidget {
   const AnimalsScreen({super.key});
+
+  @override
+  State<AnimalsScreen> createState() => _AnimalsScreenState();
+}
+
+class _AnimalsScreenState extends State<AnimalsScreen> {
+  final AnimalRepository _animalRepo = AnimalRepository();
+
+  late Stream<List<AnimalModel>> _animalsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Trigger a silent background sync
+      _animalRepo.syncAnimals(user.uid);
+      _animalsStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +76,10 @@ class AnimalsScreen extends StatelessWidget {
 
   Widget _buildSummaryCards(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox.shrink();
     
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection("animals")
-          .where("farmerId", isEqualTo: user?.uid)
-          .snapshots(),
+    return StreamBuilder<List<AnimalModel>>(
+      stream: _animalsStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Container(
@@ -77,15 +97,13 @@ class AnimalsScreen extends StatelessWidget {
           );
         }
 
-        final animals = snapshot.data!.docs;
+        final animals = snapshot.data!;
         final totalAnimals = animals.length;
-        final milkingAnimals = animals.where((doc) {
-          final animal = doc.data() as Map<String, dynamic>;
-          return (animal["productionStatus"] ?? "").toString().toLowerCase() == "milking";
+        final milkingAnimals = animals.where((animal) {
+          return animal.productionStatus.toLowerCase() == "milking";
         }).length;
-        final pregnantAnimals = animals.where((doc) {
-          final animal = doc.data() as Map<String, dynamic>;
-          return (animal["reproductiveStatus"] ?? "").toString().toLowerCase() == "pregnant";
+        final pregnantAnimals = animals.where((animal) {
+          return animal.reproductiveStatus.toLowerCase() == "pregnant";
         }).length;
 
         return Container(
@@ -146,11 +164,10 @@ class AnimalsScreen extends StatelessWidget {
   }
 
   Widget _buildAnimalsList(String? farmerId) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection("animals")
-          .where("farmerId", isEqualTo: farmerId)
-          .snapshots(), // REMOVED orderBy to fix the issue
+    if (farmerId == null) return _buildEmptyState();
+
+    return StreamBuilder<List<AnimalModel>>(
+      stream: _animalsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -166,37 +183,30 @@ class AnimalsScreen extends StatelessWidget {
           );
         }
         
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return _buildEmptyState();
         }
 
-        final animals = snapshot.data!.docs;
-
-        // Debug: Print animal data to console
-        for (var doc in animals) {
-          final animal = doc.data() as Map<String, dynamic>;
-          print("Animal: ${animal['name']} - Tag: ${animal['tagNumber']} - ID: ${doc.id}");
-        }
+        final animals = snapshot.data!;
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: animals.length,
           itemBuilder: (context, index) {
-            final doc = animals[index];
-            final animal = doc.data() as Map<String, dynamic>;
+            final animal = animals[index];
 
             return _buildAnimalCard(
               context,
-              doc.id,
-              animal["tagNumber"] ?? "No Tag",
-              animal["name"] ?? "Unnamed",
-              animal["breed"] ?? "Unknown",
-              animal["age"] ?? 0,
-              animal["productionStatus"] ?? "Unknown",
-              animal["reproductiveStatus"] ?? "Unknown",
-              animal["lastCalvingDate"],
-              animal["imageUrl"],
-              animal["farmerId"],
+              animal.id,
+              animal.tagNumber,
+              animal.name,
+              animal.breed,
+              animal.age,
+              animal.productionStatus,
+              animal.reproductiveStatus,
+              animal.lastCalvingDate,
+              animal.imageUrl,
+              animal.farmerId,
             );
           },
         );
@@ -241,7 +251,7 @@ class AnimalsScreen extends StatelessWidget {
     String reproductiveStatus,
     String? lastCalvingDate,
     String? imageUrl,
-    String? farmerId,
+    String farmerId,
   ) {
     Color statusColor = _getStatusColor(productionStatus);
     Color reproColor = _getReproductiveColor(reproductiveStatus);
@@ -435,7 +445,7 @@ class AnimalsScreen extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
-              FirebaseFirestore.instance.collection("animals").doc(id).delete();
+              _animalRepo.deleteAnimal(id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -517,6 +527,7 @@ class AnimalsScreen extends StatelessWidget {
     String? currentImage,
     String? farmerId,
   }) {
+    if (farmerId == null) return;
     final tagController = TextEditingController(text: currentTagNumber ?? "");
     final nameController = TextEditingController(text: currentName ?? "");
     final ageController = TextEditingController(text: currentAge?.toString() ?? "");
@@ -765,32 +776,26 @@ class AnimalsScreen extends StatelessWidget {
                   }
                 }
 
-                final animalData = {
-                  "tagNumber": tagController.text,
-                  "name": nameController.text.isNotEmpty ? nameController.text : "Unnamed",
-                  "breed": selectedBreed!,
-                  "age": int.tryParse(ageController.text) ?? 0,
-                  "productionStatus": selectedProductionStatus!,
-                  "reproductiveStatus": selectedReproductiveStatus!,
-                  "lastCalvingDate": lastCalvingController.text.isNotEmpty 
+                final animalModel = AnimalModel(
+                  id: docId ?? '', // temporary ID if new
+                  tagNumber: tagController.text,
+                  name: nameController.text.isNotEmpty ? nameController.text : "Unnamed",
+                  breed: selectedBreed!,
+                  age: int.tryParse(ageController.text) ?? 0,
+                  productionStatus: selectedProductionStatus!,
+                  reproductiveStatus: selectedReproductiveStatus!,
+                  lastCalvingDate: lastCalvingController.text.isNotEmpty 
                       ? lastCalvingController.text 
                       : null,
-                  "imageUrl": imageUrl,
-                  "farmerId": farmerId,
-                  "updatedAt": FieldValue.serverTimestamp(),
-                };
+                  imageUrl: imageUrl,
+                  farmerId: farmerId,
+                );
 
                 try {
                   if (docId == null) {
-                    animalData["createdAt"] = FieldValue.serverTimestamp();
-                    await FirebaseFirestore.instance
-                        .collection("animals")
-                        .add(animalData);
+                    await _animalRepo.addAnimal(animalModel);
                   } else {
-                    await FirebaseFirestore.instance
-                        .collection("animals")
-                        .doc(docId)
-                        .update(animalData);
+                    await _animalRepo.updateAnimal(animalModel);
                   }
 
                   Navigator.pop(context);

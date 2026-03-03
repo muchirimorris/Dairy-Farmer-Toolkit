@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dairy_farmer_toolkit/src/navigation/main_layout.dart';
 import 'package:intl/intl.dart';
+
+import '../../models/milk_log_model.dart';
+import '../../models/animal_model.dart';
+import '../../repositories/milk_log_repository.dart';
+import '../../repositories/animal_repository.dart';
 
 class MilkLogsScreen extends StatefulWidget {
   const MilkLogsScreen({super.key});
@@ -15,17 +19,39 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
+  
+  final MilkLogRepository _milkLogRepo = MilkLogRepository();
+  final AnimalRepository _animalRepo = AnimalRepository();
+
   String? _selectedAnimalId;
   String? _selectedAnimalName;
-  List<Map<String, dynamic>> _animals = [];
+  List<AnimalModel> _animals = [];
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   bool _isInitialized = false;
 
+  late Stream<List<MilkLogModel>> _milkLogsStream;
+  late Stream<List<AnimalModel>> _animalsStream;
+  // ignore: cancel_subscriptions
+  var _animalsSub;
+
   @override
   void initState() {
     super.initState();
-    _fetchRegisteredAnimals();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _milkLogRepo.syncMilkLogs(user.uid);
+      _animalRepo.syncAnimals(user.uid);
+      _milkLogsStream = _milkLogRepo.getMilkLogsStream(user.uid).asBroadcastStream();
+      _animalsStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
+      _fetchRegisteredAnimals();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animalsSub?.cancel();
+    super.dispose();
   }
 
   @override
@@ -42,24 +68,13 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     _timeController.text = _selectedTime.format(context);
   }
 
-  Future<void> _fetchRegisteredAnimals() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final snapshot = await FirebaseFirestore.instance
-        .collection("animals")
-        .where("farmerId", isEqualTo: user.uid)
-        .get();
-
-    setState(() {
-      _animals = snapshot.docs
-          .map((doc) => {
-                "id": doc.id,
-                "name": doc['name'] as String,
-                "tagNumber": doc['tagNumber'] ?? 'No Tag',
-                "productionStatus": doc['productionStatus'] ?? 'Unknown',
-              })
-          .toList();
+  void _fetchRegisteredAnimals() {
+    _animalsSub = _animalsStream.listen((animals) {
+      if (mounted) {
+        setState(() {
+          _animals = animals;
+        });
+      }
     });
   }
 
@@ -91,63 +106,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     }
   }
 
-  Future<void> _saveMilkLog({String? docId}) async {
-    if (_selectedAnimalId == null || _quantityController.text.isEmpty) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final logDateTime = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-
-    final logData = {
-      "animalId": _selectedAnimalId,
-      "animalName": _selectedAnimalName ?? "Unknown",
-      "quantity": double.tryParse(_quantityController.text) ?? 0,
-      "date": logDateTime,
-      "timestamp": FieldValue.serverTimestamp(),
-    };
-
-    final logsRef = FirebaseFirestore.instance
-        .collection("farmers")
-        .doc(user.uid)
-        .collection("milk_logs");
-
-    try {
-      if (docId == null) {
-        await logsRef.add(logData);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("✅ Milk log saved for $_selectedAnimalName"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        await logsRef.doc(docId).update(logData);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("✅ Milk log updated for $_selectedAnimalName"),
-            backgroundColor: Colors.blue,
-          ),
-        );
-      }
-
-      _resetForm();
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("❌ Error saving milk log: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   void _resetForm() {
     _quantityController.clear();
@@ -159,7 +118,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
   }
 
   void _openAddLogForm(BuildContext context,
-      {String? docId, Map<String, dynamic>? currentData}) {
+      {String? docId, MilkLogModel? currentData}) {
     
     TextEditingController quantityController = TextEditingController();
     String? selectedAnimalId;
@@ -168,11 +127,11 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     TimeOfDay selectedTime = TimeOfDay.now();
     
     if (currentData != null) {
-      selectedAnimalId = currentData["animalId"];
-      selectedAnimalName = currentData["animalName"];
-      quantityController.text = currentData["quantity"].toString();
+      selectedAnimalId = currentData.animalId;
+      selectedAnimalName = currentData.animalName;
+      quantityController.text = currentData.quantity.toString();
       
-      final date = (currentData["date"] as Timestamp).toDate();
+      final date = currentData.date;
       selectedDate = date;
       selectedTime = TimeOfDay.fromDateTime(date);
     }
@@ -242,22 +201,17 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               selectedTime.minute,
             );
 
-            final logData = {
-              "animalId": selectedAnimalId,
-              "animalName": selectedAnimalName ?? "Unknown",
-              "quantity": double.tryParse(quantityController.text) ?? 0,
-              "date": logDateTime,
-              "timestamp": FieldValue.serverTimestamp(),
-            };
-
-            final logsRef = FirebaseFirestore.instance
-                .collection("farmers")
-                .doc(user.uid)
-                .collection("milk_logs");
+            final logModel = MilkLogModel(
+              id: docId ?? '',
+              animalId: selectedAnimalId!,
+              animalName: selectedAnimalName ?? "Unknown",
+              quantity: double.tryParse(quantityController.text) ?? 0,
+              date: logDateTime,
+            );
 
             try {
               if (docId == null) {
-                await logsRef.add(logData);
+                await _milkLogRepo.addMilkLog(user.uid, logModel);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("✅ Milk log saved for $selectedAnimalName"),
@@ -265,7 +219,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   ),
                 );
               } else {
-                await logsRef.doc(docId).update(logData);
+                await _milkLogRepo.updateMilkLog(user.uid, logModel);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("✅ Milk log updated for $selectedAnimalName"),
@@ -306,11 +260,8 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection("animals")
-                        .where("farmerId", isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                        .snapshots(),
+                  StreamBuilder<List<AnimalModel>>(
+                    stream: _animalsStream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return DropdownButtonFormField<String>(
@@ -336,7 +287,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                         );
                       }
 
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return DropdownButtonFormField<String>(
                           decoration: const InputDecoration(
                             labelText: "No animals found",
@@ -348,23 +299,10 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                         );
                       }
 
-                      final animals = snapshot.data!.docs
-                          .map((doc) {
-                            final data = doc.data() as Map<String, dynamic>;
-                            final tagNumber = data['tagNumber'];
-                            final hasTagNumber = tagNumber != null && tagNumber.toString().trim().isNotEmpty;
-                            
-                            return {
-                              "id": doc.id,
-                              "name": data['name'] as String? ?? 'Unknown',
-                              "tagNumber": hasTagNumber ? tagNumber.toString().trim() : null,
-                              "productionStatus": data['productionStatus'] as String? ?? 'Unknown',
-                            };
-                          })
-                          .toList();
+                      final animals = snapshot.data!;
 
                       final milkingAnimals = animals.where((animal) => 
-                          (animal["productionStatus"] ?? "").toString().toLowerCase().contains("milking"))
+                          (animal.productionStatus).toLowerCase().contains("milking"))
                           .toList();
 
                       if (milkingAnimals.isEmpty) {
@@ -387,12 +325,12 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                         ),
                         value: selectedAnimalId,
                         items: milkingAnimals.map<DropdownMenuItem<String>>((animal) {
-                          final animalName = animal["name"] as String? ?? 'Unknown';
-                          final tagNumber = animal["tagNumber"] as String?;
-                          final hasTagNumber = tagNumber != null && tagNumber.isNotEmpty;
+                          final animalName = animal.name;
+                          final tagNumber = animal.tagNumber;
+                          final hasTagNumber = tagNumber.isNotEmpty;
                           
                           return DropdownMenuItem<String>(
-                            value: animal["id"] as String,
+                            value: animal.id,
                             child: Container(
                               height: 40,
                               child: hasTagNumber 
@@ -448,18 +386,17 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                             selectedAnimalId = val;
                             if (val != null) {
                               final selectedAnimal = milkingAnimals.firstWhere(
-                                (a) => a["id"] == val,
-                                orElse: () => {"name": "Unknown", "tagNumber": null}
+                                (a) => a.id == val,
                               );
-                              selectedAnimalName = selectedAnimal["name"] as String? ?? "Unknown";
+                              selectedAnimalName = selectedAnimal.name;
                             }
                           });
                         },
                         selectedItemBuilder: (BuildContext context) {
                           return milkingAnimals.map<Widget>((animal) {
-                            final animalName = animal["name"] as String? ?? 'Unknown';
-                            final tagNumber = animal["tagNumber"] as String?;
-                            final hasTagNumber = tagNumber != null && tagNumber.isNotEmpty;
+                            final animalName = animal.name;
+                            final tagNumber = animal.tagNumber;
+                            final hasTagNumber = tagNumber.isNotEmpty;
                             
                             return Container(
                               alignment: Alignment.centerLeft,
@@ -561,41 +498,38 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     );
   }
 
-  double _calculateDailyTotal(List<QueryDocumentSnapshot> logs) {
+  double _calculateDailyTotal(List<MilkLogModel> logs) {
     final today = DateTime.now();
     return logs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .where((data) {
-          final date = (data["date"] as Timestamp).toDate();
+        .where((log) {
+          final date = log.date;
           return date.year == today.year &&
               date.month == today.month &&
               date.day == today.day;
         })
-        .fold(0.0, (sum, data) => sum + (data["quantity"] as num).toDouble());
+        .fold(0.0, (sum, log) => sum + log.quantity);
   }
 
-  double _calculateWeeklyTotal(List<QueryDocumentSnapshot> logs) {
+  double _calculateWeeklyTotal(List<MilkLogModel> logs) {
     final now = DateTime.now();
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     return logs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .where((data) {
-          final date = (data["date"] as Timestamp).toDate();
+        .where((log) {
+          final date = log.date;
           return date.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
               date.isBefore(now.add(const Duration(days: 1)));
         })
-        .fold(0.0, (sum, data) => sum + (data["quantity"] as num).toDouble());
+        .fold(0.0, (sum, log) => sum + log.quantity);
   }
 
-  double _calculateMonthlyTotal(List<QueryDocumentSnapshot> logs) {
+  double _calculateMonthlyTotal(List<MilkLogModel> logs) {
     final now = DateTime.now();
     return logs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .where((data) {
-          final date = (data["date"] as Timestamp).toDate();
+        .where((log) {
+          final date = log.date;
           return date.month == now.month && date.year == now.year;
         })
-        .fold(0.0, (sum, data) => sum + (data["quantity"] as num).toDouble());
+        .fold(0.0, (sum, log) => sum + log.quantity);
   }
 
   Widget _buildSummaryCard(String title, double value, IconData icon, Color color) {
@@ -677,13 +611,8 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   ],
                 ),
               )
-            : StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection("farmers")
-                    .doc(user.uid)
-                    .collection("milk_logs")
-                    .orderBy("date", descending: true)
-                    .snapshots(),
+            : StreamBuilder<List<MilkLogModel>>(
+                stream: _milkLogsStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -706,21 +635,20 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                     );
                   }
 
-                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return _buildEmptyState();
                   }
 
-                  final logs = snapshot.data!.docs;
+                  final logs = snapshot.data!;
 
                   final dailyTotal = _calculateDailyTotal(logs);
                   final weeklyTotal = _calculateWeeklyTotal(logs);
                   final monthlyTotal = _calculateMonthlyTotal(logs);
 
-                  final Map<String, List<QueryDocumentSnapshot>> groupedLogs = {};
-                  for (var doc in logs) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    final animalName = data["animalName"] ?? "Unknown Animal";
-                    groupedLogs.putIfAbsent(animalName, () => []).add(doc);
+                  final Map<String, List<MilkLogModel>> groupedLogs = {};
+                  for (var log in logs) {
+                    final animalName = log.animalName;
+                    groupedLogs.putIfAbsent(animalName, () => []).add(log);
                   }
 
                   return ListView(
@@ -756,11 +684,10 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                               ),
                               const SizedBox(height: 12),
                               _buildStatRow("Total Animals Milking", 
-                                  _animals.where((a) => (a["productionStatus"] ?? "").toString().toLowerCase().contains("milking")).length.toString()),
+                                  _animals.where((a) => (a.productionStatus).toLowerCase().contains("milking")).length.toString()),
                               _buildStatRow("Total Logs Today", 
-                                  logs.where((doc) {
-                                    final data = doc.data() as Map<String, dynamic>;
-                                    final date = (data["date"] as Timestamp).toDate();
+                                  logs.where((log) {
+                                    final date = log.date;
                                     final today = DateTime.now();
                                     return date.year == today.year &&
                                         date.month == today.month &&
@@ -786,7 +713,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                         final animalName = entry.key;
                         final animalLogs = entry.value;
                         final totalAnimalMilk = animalLogs.fold(
-                            0.0, (sum, doc) => sum + ((doc.data() as Map<String, dynamic>)["quantity"] as num).toDouble());
+                            0.0, (sum, log) => sum + log.quantity);
 
                         return Card(
                           shape: RoundedRectangleBorder(
@@ -807,10 +734,9 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                               "Total: ${totalAnimalMilk.toStringAsFixed(1)} L • ${animalLogs.length} records",
                               style: const TextStyle(fontSize: 12),
                             ),
-                            children: animalLogs.map((doc) {
-                              final data = doc.data() as Map<String, dynamic>;
-                              final quantity = data["quantity"].toString();
-                              final date = (data["date"] as Timestamp).toDate();
+                            children: animalLogs.map((log) {
+                              final quantity = log.quantity.toString();
+                              final date = log.date;
 
                               return Container(
                                 decoration: BoxDecoration(
@@ -831,9 +757,9 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                                     onSelected: (value) async {
                                       if (value == "edit") {
                                         _openAddLogForm(context,
-                                            docId: doc.id, currentData: data);
+                                            docId: log.id, currentData: log);
                                       } else if (value == "delete") {
-                                        await _showDeleteConfirmation(context, doc.id, animalName);
+                                        await _showDeleteConfirmation(context, log.id, animalName);
                                       }
                                     },
                                     itemBuilder: (context) => [
@@ -944,12 +870,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection("farmers")
-                  .doc(user.uid)
-                  .collection("milk_logs")
-                  .doc(docId)
-                  .delete();
+              await _milkLogRepo.deleteMilkLog(user.uid, docId);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
