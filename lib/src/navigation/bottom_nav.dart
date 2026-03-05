@@ -15,6 +15,7 @@ class BottomNav extends StatelessWidget {
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: onTabSelected,
+      type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.green,
       unselectedItemColor: Colors.grey,
       items: const [
@@ -26,6 +27,10 @@ class BottomNav extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.local_drink),
           label: "Milk Logs",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance_wallet),
+          label: "Finance",
         ),
         BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
       ],

@@ -7,6 +7,8 @@ import 'package:dairy_farmer_toolkit/src/screens/components/finance_screen.dart'
 import 'package:dairy_farmer_toolkit/src/screens/components/feed_optimization_screen.dart';
 import 'package:dairy_farmer_toolkit/src/screens/components/animals_screen.dart';
 import 'package:dairy_farmer_toolkit/src/screens/components/milk_logs_screen.dart';
+import 'package:dairy_farmer_toolkit/src/screens/components/health_screen.dart';
+import 'package:dairy_farmer_toolkit/src/screens/components/analytics_screen.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/animal_model.dart';
@@ -574,8 +576,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               "Health Records",
               Icons.medical_services,
               Colors.red,
-              Container(),
+              const HealthScreen(),
               "Animal health",
+            ),
+            _buildFeatureCard(
+              context,
+              "Analytics",
+              Icons.insights,
+              Colors.purple,
+              const AnalyticsScreen(),
+              "Farm performance",
             ),
           ],
         ),

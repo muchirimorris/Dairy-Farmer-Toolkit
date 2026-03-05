@@ -29,6 +29,9 @@ class MainLayout extends StatelessWidget {
               Navigator.pushReplacementNamed(context, '/milkLogs');
               break;
             case 3:
+              Navigator.pushReplacementNamed(context, '/finance');
+              break;
+            case 4:
               Navigator.pushReplacementNamed(context, '/profile');
               break;
           }
