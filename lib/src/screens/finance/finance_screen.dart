@@ -22,7 +22,9 @@ class _FinanceScreenState extends State<FinanceScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _financeRepo.syncFinancialRecords(user.uid);
-      _financeStream = _financeRepo.getFinancialRecordsStream(user.uid).asBroadcastStream();
+      _financeStream = _financeRepo
+          .getFinancialRecordsStream(user.uid)
+          .asBroadcastStream();
     }
   }
 
@@ -34,15 +36,18 @@ class _FinanceScreenState extends State<FinanceScreen> {
       selectedIndex: 3, // Finance is index 3
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.green[700],
-          elevation: 0,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           title: const Text(
             "💰 Finance",
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Colors.white, size: 28),
+              icon: Icon(
+                Icons.add_circle,
+                color: Theme.of(context).colorScheme.onPrimary,
+                size: 28,
+              ),
               onPressed: () {
                 _showTransactionDialog(context, farmerId: user?.uid);
               },
@@ -52,9 +57,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
         body: Column(
           children: [
             _buildSummaryCards(context),
-            Expanded(
-              child: _buildTransactionList(user?.uid),
-            ),
+            Expanded(child: _buildTransactionList(user?.uid)),
           ],
         ),
       ),
@@ -82,14 +85,26 @@ class _FinanceScreenState extends State<FinanceScreen> {
 
         return Container(
           padding: const EdgeInsets.all(16),
-          color: Colors.green[50],
+          color: Theme.of(context).colorScheme.primaryContainer,
           child: Row(
             children: [
-              _buildSummaryCard("Income", "+\$${income.toStringAsFixed(2)}", Colors.green),
+              _buildSummaryCard(
+                "Income",
+                "+\$${income.toStringAsFixed(2)}",
+                Colors.green,
+              ),
               const SizedBox(width: 12),
-              _buildSummaryCard("Expenses", "-\$${expenses.toStringAsFixed(2)}", Colors.red),
+              _buildSummaryCard(
+                "Expenses",
+                "-\$${expenses.toStringAsFixed(2)}",
+                Colors.red,
+              ),
               const SizedBox(width: 12),
-              _buildSummaryCard("Balance", "\$${balance.toStringAsFixed(2)}", Colors.blue),
+              _buildSummaryCard(
+                "Balance",
+                "\$${balance.toStringAsFixed(2)}",
+                Colors.blue,
+              ),
             ],
           ),
         );
@@ -102,15 +117,34 @@ class _FinanceScreenState extends State<FinanceScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(title, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -123,7 +157,8 @@ class _FinanceScreenState extends State<FinanceScreen> {
     return StreamBuilder<List<FinancialRecordModel>>(
       stream: _financeStream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
 
         final sortedRecords = snapshot.data!.toList()
           ..sort((a, b) => b.date.compareTo(a.date));
@@ -133,9 +168,19 @@ class _FinanceScreenState extends State<FinanceScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.account_balance_wallet, size: 80, color: Colors.grey[300]),
+                Icon(
+                  Icons.account_balance_wallet,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(height: 16),
-                const Text("No Transactions", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  "No Transactions",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           );
@@ -149,16 +194,23 @@ class _FinanceScreenState extends State<FinanceScreen> {
             final isIncome = record.type == 'income';
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
+                  backgroundColor: isIncome
+                      ? Colors.green[100]
+                      : Colors.red[100],
                   child: Icon(
                     isIncome ? Icons.arrow_downward : Icons.arrow_upward,
                     color: isIncome ? Colors.green : Colors.red,
                   ),
                 ),
-                title: Text(record.category, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(
+                  record.category,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text(DateFormat('MMM dd, yyyy').format(record.date)),
                 trailing: Text(
                   "${isIncome ? "+" : "-"}\$${record.amount.toStringAsFixed(2)}",
@@ -174,15 +226,26 @@ class _FinanceScreenState extends State<FinanceScreen> {
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text("Delete Record"),
-                      content: const Text("Are you sure you want to delete this transaction?"),
+                      content: const Text(
+                        "Are you sure you want to delete this transaction?",
+                      ),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel"),
+                        ),
                         TextButton(
                           onPressed: () {
-                            _financeRepo.deleteFinancialRecord(farmerId, record.id);
+                            _financeRepo.deleteFinancialRecord(
+                              farmerId,
+                              record.id,
+                            );
                             Navigator.pop(context);
                           },
-                          child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                          child: const Text(
+                            "Delete",
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     ),
@@ -232,22 +295,35 @@ class _FinanceScreenState extends State<FinanceScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: amountController,
-                  decoration: const InputDecoration(labelText: "Amount", prefixText: "\$"),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: "Amount",
+                    prefixText: "\$",
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                 ),
                 TextField(
                   controller: categoryController,
-                  decoration: const InputDecoration(labelText: "Category", hintText: "e.g., Feed, Milk Sale"),
+                  decoration: const InputDecoration(
+                    labelText: "Category",
+                    hintText: "e.g., Feed, Milk Sale",
+                  ),
                 ),
                 TextField(
                   controller: descriptionController,
-                  decoration: const InputDecoration(labelText: "Description (Optional)"),
+                  decoration: const InputDecoration(
+                    labelText: "Description (Optional)",
+                  ),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
             ElevatedButton(
               onPressed: () async {
                 final amount = double.tryParse(amountController.text) ?? 0.0;

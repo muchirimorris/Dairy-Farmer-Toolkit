@@ -126,9 +126,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: CircleAvatar(
                     radius: 16,
                     backgroundColor: Colors.green,
-                    child: const Icon(
+                    child: Icon(
                       Icons.camera_alt,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       size: 18,
                     ),
                   ),
@@ -168,14 +168,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         horizontal: 40,
                         vertical: 14,
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                     ),
-                    icon: const Icon(Icons.save, color: Colors.white),
-                    label: const Text(
+                    icon: Icon(
+                      Icons.save,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    label: Text(
                       "Save Changes",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
           ],

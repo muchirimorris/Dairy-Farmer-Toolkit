@@ -20,7 +20,9 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _feedRepo.syncFeedInventory(user.uid);
-      _feedStream = _feedRepo.getFeedInventoryStream(user.uid).asBroadcastStream();
+      _feedStream = _feedRepo
+          .getFeedInventoryStream(user.uid)
+          .asBroadcastStream();
     }
   }
 
@@ -31,10 +33,19 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.brown[600],
-        title: const Text("🌿 Feed Optimization", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          "🌿 Feed Optimization",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
+            icon: Icon(
+              Icons.add_shopping_cart,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
             onPressed: () => _showAddFeedDialog(context, user?.uid),
             tooltip: "Add Feed Stock",
           ),
@@ -50,17 +61,28 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
     return StreamBuilder<List<FeedInventoryModel>>(
       stream: _feedStream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
 
         final inventory = snapshot.data!;
         if (inventory.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.grass, size: 80, color: Colors.grey),
+                Icon(
+                  Icons.grass,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 SizedBox(height: 16),
-                Text("No Feed Inventory", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  "No Feed Inventory",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           );
@@ -71,13 +93,16 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
           itemCount: inventory.length,
           itemBuilder: (context, index) {
             final item = inventory[index];
-            final percentLeft = item.threshold > 0 ? (item.quantity / (item.threshold * 3)).clamp(0.0, 1.0) : 1.0;
+            final percentLeft = item.threshold > 0
+                ? (item.quantity / (item.threshold * 3)).clamp(0.0, 1.0)
+                : 1.0;
             final isLow = item.quantity <= item.threshold;
 
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -86,22 +111,56 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                        Text(
+                          item.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
                         if (isLow)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(color: Colors.red[100], borderRadius: BorderRadius.circular(12)),
-                            child: const Text("Low Stock", style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              "Low Stock",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                       ],
                     ),
-                    Text(item.type, style: TextStyle(color: Colors.grey[600])),
+                    Text(
+                      item.type,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Available: ${item.quantity.toStringAsFixed(1)} ${item.unit}"),
-                        Text("Threshold: ${item.threshold} ${item.unit}", style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                        Text(
+                          "Available: ${item.quantity.toStringAsFixed(1)} ${item.unit}",
+                        ),
+                        Text(
+                          "Threshold: ${item.threshold} ${item.unit}",
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -117,20 +176,30 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         OutlinedButton.icon(
-                          onPressed: () => _showConsumeDialog(context, farmerId, item),
-                          icon: const Icon(Icons.remove_circle_outline, size: 18),
+                          onPressed: () =>
+                              _showConsumeDialog(context, farmerId, item),
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            size: 18,
+                          ),
                           label: const Text("Log Feed"),
-                          style: OutlinedButton.styleFrom(foregroundColor: Colors.brown),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.brown,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton.icon(
-                          onPressed: () => _deleteFeedItem(context, farmerId, item),
+                          onPressed: () =>
+                              _deleteFeedItem(context, farmerId, item),
                           icon: const Icon(Icons.delete, size: 18),
                           label: const Text("Delete"),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -143,7 +212,7 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
 
   void _showAddFeedDialog(BuildContext context, String? farmerId) {
     if (farmerId == null) return;
-    
+
     final nameController = TextEditingController();
     final qtyController = TextEditingController();
     final thresholdController = TextEditingController();
@@ -159,11 +228,18 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameController, decoration: const InputDecoration(labelText: "Feed Name (e.g. Alfalfa)")),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: "Feed Name (e.g. Alfalfa)",
+                  ),
+                ),
                 DropdownButtonFormField<String>(
                   value: type,
                   decoration: const InputDecoration(labelText: "Type"),
-                  items: ['Hay', 'Silage', 'Concentrate', 'Minerals'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  items: ['Hay', 'Silage', 'Concentrate', 'Minerals']
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
                   onChanged: (v) => setState(() => type = v!),
                 ),
                 Row(
@@ -171,7 +247,9 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                     Expanded(
                       child: TextField(
                         controller: qtyController,
-                        decoration: const InputDecoration(labelText: "Initial Quantity"),
+                        decoration: const InputDecoration(
+                          labelText: "Initial Quantity",
+                        ),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -180,7 +258,11 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                       child: DropdownButtonFormField<String>(
                         value: unit,
                         decoration: const InputDecoration(labelText: "Unit"),
-                        items: ['kg', 'bales', 'tons', 'bags'].map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                        items: ['kg', 'bales', 'tons', 'bags']
+                            .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)),
+                            )
+                            .toList(),
                         onChanged: (v) => setState(() => unit = v!),
                       ),
                     ),
@@ -188,19 +270,25 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                 ),
                 TextField(
                   controller: thresholdController,
-                  decoration: const InputDecoration(labelText: "Low Stock Alert Threshold"),
+                  decoration: const InputDecoration(
+                    labelText: "Low Stock Alert Threshold",
+                  ),
                   keyboardType: TextInputType.number,
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
             ElevatedButton(
               onPressed: () async {
                 final name = nameController.text.trim();
                 final qty = double.tryParse(qtyController.text) ?? 0;
-                final threshold = double.tryParse(thresholdController.text) ?? 0;
+                final threshold =
+                    double.tryParse(thresholdController.text) ?? 0;
 
                 if (name.isNotEmpty && qty > 0) {
                   final item = FeedInventoryModel(
@@ -225,7 +313,11 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
     );
   }
 
-  void _showConsumeDialog(BuildContext context, String farmerId, FeedInventoryModel item) {
+  void _showConsumeDialog(
+    BuildContext context,
+    String farmerId,
+    FeedInventoryModel item,
+  ) {
     final qtyController = TextEditingController();
 
     showDialog(
@@ -234,16 +326,23 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
         title: Text("Consume ${item.name}"),
         content: TextField(
           controller: qtyController,
-          decoration: InputDecoration(labelText: "Amount to deduct (${item.unit})"),
+          decoration: InputDecoration(
+            labelText: "Amount to deduct (${item.unit})",
+          ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
           ElevatedButton(
             onPressed: () async {
               final deduct = double.tryParse(qtyController.text) ?? 0;
               if (deduct > 0 && deduct <= item.quantity) {
-                final updatedItem = item.copyWith(quantity: item.quantity - deduct);
+                final updatedItem = item.copyWith(
+                  quantity: item.quantity - deduct,
+                );
                 await _feedRepo.updateFeedItem(farmerId, updatedItem);
                 Navigator.pop(context);
               }
@@ -255,16 +354,28 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
     );
   }
 
-  void _deleteFeedItem(BuildContext context, String farmerId, FeedInventoryModel item) {
+  void _deleteFeedItem(
+    BuildContext context,
+    String farmerId,
+    FeedInventoryModel item,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Feed Item?"),
-        content: const Text("This will permanently remove the item from inventory."),
+        content: const Text(
+          "This will permanently remove the item from inventory.",
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               await _feedRepo.deleteFeedItem(farmerId, item.id);
               Navigator.pop(context);

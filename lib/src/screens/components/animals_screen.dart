@@ -28,7 +28,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     if (user != null) {
       // Trigger a silent background sync
       _animalRepo.syncAnimals(user.uid);
-      _animalsStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
+      _animalsStream = _animalRepo
+          .getAnimalsStream(user.uid)
+          .asBroadcastStream();
     }
   }
 
@@ -40,19 +42,22 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       selectedIndex: 1,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.green[700],
-          elevation: 0,
-          title: const Text(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: Text(
             "🐄 My Livestock",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Colors.white, size: 28),
+              icon: Icon(
+                Icons.add_circle,
+                color: Theme.of(context).colorScheme.onPrimary,
+                size: 28,
+              ),
               onPressed: () {
                 _showAnimalDialog(context, farmerId: user?.uid);
               },
@@ -65,9 +70,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
             // Summary Cards
             _buildSummaryCards(context),
             // Animals List
-            Expanded(
-              child: _buildAnimalsList(user?.uid),
-            ),
+            Expanded(child: _buildAnimalsList(user?.uid)),
           ],
         ),
       ),
@@ -77,19 +80,24 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
   Widget _buildSummaryCards(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
-    
+
     return StreamBuilder<List<AnimalModel>>(
       stream: _animalsStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.green[50],
+            color: Theme.of(context).colorScheme.primaryContainer,
             child: Row(
               children: [
                 _buildSummaryCard("Total", "0", Icons.pets, Colors.blue),
                 const SizedBox(width: 12),
-                _buildSummaryCard("Milking", "0", Icons.local_drink, Colors.green),
+                _buildSummaryCard(
+                  "Milking",
+                  "0",
+                  Icons.local_drink,
+                  Colors.green,
+                ),
                 const SizedBox(width: 12),
                 _buildSummaryCard("Pregnant", "0", Icons.favorite, Colors.pink),
               ],
@@ -108,14 +116,29 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
 
         return Container(
           padding: const EdgeInsets.all(16),
-          color: Colors.green[50],
+          color: Theme.of(context).colorScheme.primaryContainer,
           child: Row(
             children: [
-              _buildSummaryCard("Total", totalAnimals.toString(), Icons.pets, Colors.blue),
+              _buildSummaryCard(
+                "Total",
+                totalAnimals.toString(),
+                Icons.pets,
+                Colors.blue,
+              ),
               const SizedBox(width: 12),
-              _buildSummaryCard("Milking", milkingAnimals.toString(), Icons.local_drink, Colors.green),
+              _buildSummaryCard(
+                "Milking",
+                milkingAnimals.toString(),
+                Icons.local_drink,
+                Colors.green,
+              ),
               const SizedBox(width: 12),
-              _buildSummaryCard("Pregnant", pregnantAnimals.toString(), Icons.favorite, Colors.pink),
+              _buildSummaryCard(
+                "Pregnant",
+                pregnantAnimals.toString(),
+                Icons.favorite,
+                Colors.pink,
+              ),
             ],
           ),
         );
@@ -123,41 +146,37 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     );
   }
 
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
-            ),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -172,7 +191,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasError) {
           return Center(
             child: Text(
@@ -182,7 +201,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
             ),
           );
         }
-        
+
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return _buildEmptyState();
         }
@@ -219,20 +238,26 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.pets, size: 80, color: Colors.grey[300]),
+          Icon(
+            Icons.pets,
+            size: 80,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             "No Animals Added",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Tap the + button to add your first animal",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -259,7 +284,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 3,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -270,7 +294,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 // Animal Image
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                  backgroundImage: imageUrl != null
+                      ? NetworkImage(imageUrl)
+                      : null,
                   backgroundColor: Colors.green.withOpacity(0.2),
                   child: imageUrl == null
                       ? const Icon(Icons.pets, color: Colors.green, size: 30)
@@ -293,7 +319,10 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                           ),
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: statusColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(12),
@@ -312,16 +341,23 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                       ),
                       Text(
                         "Tag: $tagNumber • Breed: $breed",
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       Text(
                         "Age: $age years",
-                        style: TextStyle(color: Colors.grey[600]),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       if (reproductiveStatus != "Unknown") ...[
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: reproColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
@@ -343,7 +379,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                           "Last Calving: ${_formatDate(lastCalvingDate)}",
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -354,17 +392,19 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == "edit") {
-                      _showAnimalDialog(context,
-                          docId: id,
-                          currentTagNumber: tagNumber,
-                          currentName: name,
-                          currentBreed: breed,
-                          currentAge: age,
-                          currentProductionStatus: productionStatus,
-                          currentReproductiveStatus: reproductiveStatus,
-                          currentLastCalvingDate: lastCalvingDate,
-                          currentImage: imageUrl,
-                          farmerId: farmerId);
+                      _showAnimalDialog(
+                        context,
+                        docId: id,
+                        currentTagNumber: tagNumber,
+                        currentName: name,
+                        currentBreed: breed,
+                        currentAge: age,
+                        currentProductionStatus: productionStatus,
+                        currentReproductiveStatus: reproductiveStatus,
+                        currentLastCalvingDate: lastCalvingDate,
+                        currentImage: imageUrl,
+                        farmerId: farmerId,
+                      );
                     } else if (value == "delete") {
                       _showDeleteConfirmation(context, id, name);
                     } else if (value == "view_details") {
@@ -381,9 +421,15 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(value: "view_details", child: Text("📊 View Details")),
+                    const PopupMenuItem(
+                      value: "view_details",
+                      child: Text("📊 View Details"),
+                    ),
                     const PopupMenuItem(value: "edit", child: Text("✏️ Edit")),
-                    const PopupMenuItem(value: "delete", child: Text("🗑️ Delete")),
+                    const PopupMenuItem(
+                      value: "delete",
+                      child: Text("🗑️ Delete"),
+                    ),
                   ],
                 ),
               ],
@@ -436,7 +482,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Animal"),
-        content: Text("Are you sure you want to delete $name? This action cannot be undone."),
+        content: Text(
+          "Are you sure you want to delete $name? This action cannot be undone.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -483,9 +531,15 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
               _buildDetailRow("Breed", animal['breed']),
               _buildDetailRow("Age", "${animal['age']} years"),
               _buildDetailRow("Production Status", animal['productionStatus']),
-              _buildDetailRow("Reproductive Status", animal['reproductiveStatus']),
+              _buildDetailRow(
+                "Reproductive Status",
+                animal['reproductiveStatus'],
+              ),
               if (animal['lastCalvingDate'] != null)
-                _buildDetailRow("Last Calving", _formatDate(animal['lastCalvingDate']!)),
+                _buildDetailRow(
+                  "Last Calving",
+                  _formatDate(animal['lastCalvingDate']!),
+                ),
             ],
           ),
         ),
@@ -504,10 +558,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(
-            "$label: ",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          Text("$label: ", style: const TextStyle(fontWeight: FontWeight.bold)),
           Text(value),
         ],
       ),
@@ -530,8 +581,12 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     if (farmerId == null) return;
     final tagController = TextEditingController(text: currentTagNumber ?? "");
     final nameController = TextEditingController(text: currentName ?? "");
-    final ageController = TextEditingController(text: currentAge?.toString() ?? "");
-    final lastCalvingController = TextEditingController(text: currentLastCalvingDate ?? "");
+    final ageController = TextEditingController(
+      text: currentAge?.toString() ?? "",
+    );
+    final lastCalvingController = TextEditingController(
+      text: currentLastCalvingDate ?? "",
+    );
     File? imageFile;
     String? selectedBreed = currentBreed;
     String? selectedProductionStatus = currentProductionStatus ?? "Milking";
@@ -545,22 +600,12 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       "Sahiwal",
       "Holstein",
       "Brown Swiss",
-      "Other"
+      "Other",
     ];
 
-    final productionStatuses = [
-      "Milking",
-      "Dry",
-      "Heifer",
-      "Calf"
-    ];
+    final productionStatuses = ["Milking", "Dry", "Heifer", "Calf"];
 
-    final reproductiveStatuses = [
-      "Pregnant",
-      "Open",
-      "Bred",
-      "Unknown"
-    ];
+    final reproductiveStatuses = ["Pregnant", "Open", "Bred", "Unknown"];
 
     Future<void> pickImage(ImageSource source) async {
       final picker = ImagePicker();
@@ -571,17 +616,17 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     }
 
     Future<void> pickLastCalvingDate() async {
-      final initialDate = currentLastCalvingDate != null 
+      final initialDate = currentLastCalvingDate != null
           ? DateTime.parse(currentLastCalvingDate!)
           : DateTime.now();
-      
+
       final picked = await showDatePicker(
         context: context,
         initialDate: initialDate,
         firstDate: DateTime(2000),
         lastDate: DateTime.now(),
       );
-      
+
       if (picked != null) {
         lastCalvingController.text = picked.toIso8601String().split('T')[0];
       }
@@ -630,16 +675,20 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     backgroundImage: imageFile != null
                         ? FileImage(imageFile!)
                         : (currentImage != null
-                            ? NetworkImage(currentImage) as ImageProvider
-                            : null),
+                              ? NetworkImage(currentImage) as ImageProvider
+                              : null),
                     backgroundColor: Colors.green[100],
                     child: (imageFile == null && currentImage == null)
-                        ? const Icon(Icons.camera_alt, size: 40, color: Colors.green)
+                        ? const Icon(
+                            Icons.camera_alt,
+                            size: 40,
+                            color: Colors.green,
+                          )
                         : null,
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Tag Number
                 TextField(
                   controller: tagController,
@@ -649,7 +698,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Name
                 TextField(
                   controller: nameController,
@@ -659,16 +708,13 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Breed
                 DropdownButtonFormField<String>(
                   value: selectedBreed,
                   decoration: const InputDecoration(labelText: "Breed *"),
                   items: breeds.map((breed) {
-                    return DropdownMenuItem(
-                      value: breed,
-                      child: Text(breed),
-                    );
+                    return DropdownMenuItem(value: breed, child: Text(breed));
                   }).toList(),
                   onChanged: (val) {
                     setState(() {
@@ -677,26 +723,23 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Age
                 TextField(
                   controller: ageController,
-                  decoration: const InputDecoration(
-                    labelText: "Age (years) *",
-                  ),
+                  decoration: const InputDecoration(labelText: "Age (years) *"),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Production Status
                 DropdownButtonFormField<String>(
                   value: selectedProductionStatus,
-                  decoration: const InputDecoration(labelText: "Production Status *"),
+                  decoration: const InputDecoration(
+                    labelText: "Production Status *",
+                  ),
                   items: productionStatuses.map((status) {
-                    return DropdownMenuItem(
-                      value: status,
-                      child: Text(status),
-                    );
+                    return DropdownMenuItem(value: status, child: Text(status));
                   }).toList(),
                   onChanged: (val) {
                     setState(() {
@@ -705,16 +748,15 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Reproductive Status
                 DropdownButtonFormField<String>(
                   value: selectedReproductiveStatus,
-                  decoration: const InputDecoration(labelText: "Reproductive Status"),
+                  decoration: const InputDecoration(
+                    labelText: "Reproductive Status",
+                  ),
                   items: reproductiveStatuses.map((status) {
-                    return DropdownMenuItem(
-                      value: status,
-                      child: Text(status),
-                    );
+                    return DropdownMenuItem(value: status, child: Text(status));
                   }).toList(),
                   onChanged: (val) {
                     setState(() {
@@ -723,7 +765,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Last Calving Date
                 TextField(
                   controller: lastCalvingController,
@@ -748,8 +790,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
             ElevatedButton(
               onPressed: () async {
                 // Validation
-                if (tagController.text.isEmpty || 
-                    selectedBreed == null || 
+                if (tagController.text.isEmpty ||
+                    selectedBreed == null ||
                     ageController.text.isEmpty ||
                     selectedProductionStatus == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -766,9 +808,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 // Upload new image if selected
                 if (imageFile != null) {
                   try {
-                    final ref = FirebaseStorage.instance
-                        .ref()
-                        .child("animals/${DateTime.now().millisecondsSinceEpoch}.jpg");
+                    final ref = FirebaseStorage.instance.ref().child(
+                      "animals/${DateTime.now().millisecondsSinceEpoch}.jpg",
+                    );
                     await ref.putFile(imageFile!);
                     imageUrl = await ref.getDownloadURL();
                   } catch (e) {
@@ -779,13 +821,15 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 final animalModel = AnimalModel(
                   id: docId ?? '', // temporary ID if new
                   tagNumber: tagController.text,
-                  name: nameController.text.isNotEmpty ? nameController.text : "Unnamed",
+                  name: nameController.text.isNotEmpty
+                      ? nameController.text
+                      : "Unnamed",
                   breed: selectedBreed!,
                   age: int.tryParse(ageController.text) ?? 0,
                   productionStatus: selectedProductionStatus!,
                   reproductiveStatus: selectedReproductiveStatus!,
-                  lastCalvingDate: lastCalvingController.text.isNotEmpty 
-                      ? lastCalvingController.text 
+                  lastCalvingDate: lastCalvingController.text.isNotEmpty
+                      ? lastCalvingController.text
                       : null,
                   imageUrl: imageUrl,
                   farmerId: farmerId,
@@ -801,7 +845,9 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("${nameController.text.isNotEmpty ? nameController.text : 'Animal'} ${docId == null ? 'added' : 'updated'} successfully!"),
+                      content: Text(
+                        "${nameController.text.isNotEmpty ? nameController.text : 'Animal'} ${docId == null ? 'added' : 'updated'} successfully!",
+                      ),
                       backgroundColor: Colors.green,
                     ),
                   );

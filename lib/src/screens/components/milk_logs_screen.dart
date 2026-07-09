@@ -19,7 +19,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
-  
+
   final MilkLogRepository _milkLogRepo = MilkLogRepository();
   final AnimalRepository _animalRepo = AnimalRepository();
 
@@ -42,8 +42,12 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     if (user != null) {
       _milkLogRepo.syncMilkLogs(user.uid);
       _animalRepo.syncAnimals(user.uid);
-      _milkLogsStream = _milkLogRepo.getMilkLogsStream(user.uid).asBroadcastStream();
-      _animalsStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
+      _milkLogsStream = _milkLogRepo
+          .getMilkLogsStream(user.uid)
+          .asBroadcastStream();
+      _animalsStream = _animalRepo
+          .getAnimalsStream(user.uid)
+          .asBroadcastStream();
       _fetchRegisteredAnimals();
     }
   }
@@ -106,8 +110,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     }
   }
 
-
-
   void _resetForm() {
     _quantityController.clear();
     _selectedAnimalId = null;
@@ -117,20 +119,22 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
     _updateDateTimeControllers();
   }
 
-  void _openAddLogForm(BuildContext context,
-      {String? docId, MilkLogModel? currentData}) {
-    
+  void _openAddLogForm(
+    BuildContext context, {
+    String? docId,
+    MilkLogModel? currentData,
+  }) {
     TextEditingController quantityController = TextEditingController();
     String? selectedAnimalId;
     String? selectedAnimalName;
     DateTime selectedDate = DateTime.now();
     TimeOfDay selectedTime = TimeOfDay.now();
-    
+
     if (currentData != null) {
       selectedAnimalId = currentData.animalId;
       selectedAnimalName = currentData.animalName;
       quantityController.text = currentData.quantity.toString();
-      
+
       final date = currentData.date;
       selectedDate = date;
       selectedTime = TimeOfDay.fromDateTime(date);
@@ -161,7 +165,9 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
             if (picked != null && picked != selectedDate) {
               setModalState(() {
                 selectedDate = picked;
-                dateController.text = DateFormat('yyyy-MM-dd').format(selectedDate);
+                dateController.text = DateFormat(
+                  'yyyy-MM-dd',
+                ).format(selectedDate);
               });
             }
           }
@@ -301,8 +307,12 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
 
                       final animals = snapshot.data!;
 
-                      final milkingAnimals = animals.where((animal) => 
-                          (animal.productionStatus).toLowerCase().contains("milking"))
+                      final milkingAnimals = animals
+                          .where(
+                            (animal) => (animal.productionStatus)
+                                .toLowerCase()
+                                .contains("milking"),
+                          )
                           .toList();
 
                       if (milkingAnimals.isEmpty) {
@@ -324,23 +334,28 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                           prefixIcon: Icon(Icons.pets),
                         ),
                         value: selectedAnimalId,
-                        items: milkingAnimals.map<DropdownMenuItem<String>>((animal) {
+                        items: milkingAnimals.map<DropdownMenuItem<String>>((
+                          animal,
+                        ) {
                           final animalName = animal.name;
                           final tagNumber = animal.tagNumber;
                           final hasTagNumber = tagNumber.isNotEmpty;
-                          
+
                           return DropdownMenuItem<String>(
                             value: animal.id,
                             child: Container(
                               height: 40,
-                              child: hasTagNumber 
+                              child: hasTagNumber
                                   ? Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
                                       children: [
                                         Expanded(
                                           child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
@@ -354,9 +369,11 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                                               ),
                                               Text(
                                                 "Tag: $tagNumber",
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 11,
-                                                  color: Colors.grey,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
@@ -397,14 +414,14 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                             final animalName = animal.name;
                             final tagNumber = animal.tagNumber;
                             final hasTagNumber = tagNumber.isNotEmpty;
-                            
+
                             return Container(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                hasTagNumber ? "$animalName (Tag: $tagNumber)" : animalName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                ),
+                                hasTagNumber
+                                    ? "$animalName (Tag: $tagNumber)"
+                                    : animalName,
+                                style: const TextStyle(fontSize: 16),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -482,7 +499,10 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                           ),
                           child: Text(
                             docId == null ? "Save Log" : "Update Log",
-                            style: const TextStyle(fontSize: 16, color: Colors.white),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -532,10 +552,14 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
         .fold(0.0, (sum, log) => sum + log.quantity);
   }
 
-  Widget _buildSummaryCard(String title, double value, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String title,
+    double value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Card(
-        elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -545,9 +569,9 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               const SizedBox(height: 8),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -575,22 +599,26 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       selectedIndex: 2,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.green[700],
-          elevation: 0,
-          title: const Text(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: Text(
             "🥛 Milk Production",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.bar_chart, color: Colors.white),
+              icon: Icon(
+                Icons.bar_chart,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Analytics feature coming soon!")),
+                  const SnackBar(
+                    content: Text("Analytics feature coming soon!"),
+                  ),
                 );
               },
               tooltip: "View Analytics",
@@ -598,15 +626,22 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
           ],
         ),
         body: user == null
-            ? const Center(
+            ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     SizedBox(height: 16),
                     Text(
                       "Please log in to view milk logs",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -623,7 +658,11 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                          const Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             "Error loading milk logs: ${snapshot.error}",
@@ -656,20 +695,31 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                     children: [
                       Row(
                         children: [
-                          _buildSummaryCard("Today", dailyTotal, Icons.today, Colors.green),
+                          _buildSummaryCard(
+                            "Today",
+                            dailyTotal,
+                            Icons.today,
+                            Colors.green,
+                          ),
                           const SizedBox(width: 12),
-                          _buildSummaryCard("This Week", weeklyTotal, Icons.calendar_view_week, Colors.blue),
+                          _buildSummaryCard(
+                            "This Week",
+                            weeklyTotal,
+                            Icons.calendar_view_week,
+                            Colors.blue,
+                          ),
                           const SizedBox(width: 12),
-                          _buildSummaryCard("This Month", monthlyTotal, Icons.calendar_today, Colors.orange),
+                          _buildSummaryCard(
+                            "This Month",
+                            monthlyTotal,
+                            Icons.calendar_today,
+                            Colors.orange,
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
 
                       Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 3,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -683,17 +733,34 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              _buildStatRow("Total Animals Milking", 
-                                  _animals.where((a) => (a.productionStatus).toLowerCase().contains("milking")).length.toString()),
-                              _buildStatRow("Total Logs Today", 
-                                  logs.where((log) {
-                                    final date = log.date;
-                                    final today = DateTime.now();
-                                    return date.year == today.year &&
-                                        date.month == today.month &&
-                                        date.day == today.day;
-                                  }).length.toString()),
-                              _buildStatRow("Average Daily", "${(dailyTotal / 7).toStringAsFixed(1)} L"),
+                              _buildStatRow(
+                                "Total Animals Milking",
+                                _animals
+                                    .where(
+                                      (a) => (a.productionStatus)
+                                          .toLowerCase()
+                                          .contains("milking"),
+                                    )
+                                    .length
+                                    .toString(),
+                              ),
+                              _buildStatRow(
+                                "Total Logs Today",
+                                logs
+                                    .where((log) {
+                                      final date = log.date;
+                                      final today = DateTime.now();
+                                      return date.year == today.year &&
+                                          date.month == today.month &&
+                                          date.day == today.day;
+                                    })
+                                    .length
+                                    .toString(),
+                              ),
+                              _buildStatRow(
+                                "Average Daily",
+                                "${(dailyTotal / 7).toStringAsFixed(1)} L",
+                              ),
                             ],
                           ),
                         ),
@@ -713,16 +780,17 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                         final animalName = entry.key;
                         final animalLogs = entry.value;
                         final totalAnimalMilk = animalLogs.fold(
-                            0.0, (sum, log) => sum + log.quantity);
+                          0.0,
+                          (sum, log) => sum + log.quantity,
+                        );
 
                         return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
                           margin: const EdgeInsets.only(bottom: 16),
-                          elevation: 3,
                           child: ExpansionTile(
-                            leading: const Icon(Icons.pets, color: Colors.green),
+                            leading: const Icon(
+                              Icons.pets,
+                              color: Colors.green,
+                            ),
                             title: Text(
                               animalName,
                               style: const TextStyle(
@@ -741,25 +809,43 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                               return Container(
                                 decoration: BoxDecoration(
                                   border: Border(
-                                    top: BorderSide(color: Colors.grey.shade200),
+                                    top: BorderSide(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                                 child: ListTile(
-                                  leading: const Icon(Icons.local_drink, color: Colors.blueAccent),
+                                  leading: const Icon(
+                                    Icons.local_drink,
+                                    color: Colors.blueAccent,
+                                  ),
                                   title: Text(
                                     "$quantity Liters",
-                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                   subtitle: Text(
-                                    DateFormat("MMM dd, yyyy 'at' hh:mm a").format(date),
+                                    DateFormat(
+                                      "MMM dd, yyyy 'at' hh:mm a",
+                                    ).format(date),
                                   ),
                                   trailing: PopupMenuButton<String>(
                                     onSelected: (value) async {
                                       if (value == "edit") {
-                                        _openAddLogForm(context,
-                                            docId: log.id, currentData: log);
+                                        _openAddLogForm(
+                                          context,
+                                          docId: log.id,
+                                          currentData: log,
+                                        );
                                       } else if (value == "delete") {
-                                        await _showDeleteConfirmation(context, log.id, animalName);
+                                        await _showDeleteConfirmation(
+                                          context,
+                                          log.id,
+                                          animalName,
+                                        );
                                       }
                                     },
                                     itemBuilder: (context) => [
@@ -777,9 +863,18 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                                         value: "delete",
                                         child: Row(
                                           children: [
-                                            Icon(Icons.delete, size: 20, color: Colors.red),
+                                            Icon(
+                                              Icons.delete,
+                                              size: 20,
+                                              color: Colors.red,
+                                            ),
                                             SizedBox(width: 8),
-                                            Text("Delete", style: TextStyle(color: Colors.red)),
+                                            Text(
+                                              "Delete",
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -809,20 +904,26 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.local_drink, size: 80, color: Colors.grey[300]),
+          Icon(
+            Icons.local_drink,
+            size: 80,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             "No Milk Logs Yet",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Tap the + button to add your first milk log",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -830,9 +931,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
             onPressed: () => _openAddLogForm(context),
             icon: const Icon(Icons.add),
             label: const Text("Add First Log"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
           ),
         ],
       ),
@@ -846,14 +945,20 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(fontSize: 14)),
-          Text(value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
   }
 
-  Future<void> _showDeleteConfirmation(BuildContext context, String docId, String animalName) async {
+  Future<void> _showDeleteConfirmation(
+    BuildContext context,
+    String docId,
+    String animalName,
+  ) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
@@ -861,7 +966,9 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Milk Log"),
-        content: Text("Are you sure you want to delete this milk log for $animalName?"),
+        content: Text(
+          "Are you sure you want to delete this milk log for $animalName?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

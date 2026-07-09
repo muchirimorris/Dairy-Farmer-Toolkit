@@ -28,10 +28,14 @@ class _HealthScreenState extends State<HealthScreen> {
     if (user != null) {
       _healthRepo.syncHealthRecords(user.uid);
       _animalRepo.syncAnimals(user.uid);
-      
-      _healthStream = _healthRepo.getHealthRecordsStream(user.uid).asBroadcastStream();
-      _animalStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
-      
+
+      _healthStream = _healthRepo
+          .getHealthRecordsStream(user.uid)
+          .asBroadcastStream();
+      _animalStream = _animalRepo
+          .getAnimalsStream(user.uid)
+          .asBroadcastStream();
+
       _animalStream.listen((animals) {
         if (mounted) {
           setState(() {
@@ -56,11 +60,20 @@ class _HealthScreenState extends State<HealthScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("🩺 Health Records", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          "🩺 Health Records",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.red[700],
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle, color: Colors.white),
+            icon: Icon(
+              Icons.add_circle,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
             onPressed: () => _showAddRecordDialog(context, user?.uid),
           ),
         ],
@@ -80,19 +93,30 @@ class _HealthScreenState extends State<HealthScreen> {
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.medical_services, size: 80, color: Colors.grey),
+                Icon(
+                  Icons.medical_services,
+                  size: 80,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 SizedBox(height: 16),
-                Text("No Health Records", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                Text(
+                  "No Health Records",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           );
         }
 
-        final records = snapshot.data!.toList()..sort((a, b) => b.date.compareTo(a.date));
+        final records = snapshot.data!.toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -104,20 +128,30 @@ class _HealthScreenState extends State<HealthScreen> {
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: CircleAvatar(
                   backgroundColor: color.withOpacity(0.2),
                   child: Icon(icon, color: color),
                 ),
-                title: Text(_getAnimalName(record.animalId), style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(
+                  _getAnimalName(record.animalId),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${record.type.toUpperCase()} • ${DateFormat('MMM dd, yyyy').format(record.date)}"),
+                    Text(
+                      "${record.type.toUpperCase()} • ${DateFormat('MMM dd, yyyy').format(record.date)}",
+                    ),
                     const SizedBox(height: 4),
-                    Text(record.description, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text(
+                      record.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
                 trailing: IconButton(
@@ -163,9 +197,11 @@ class _HealthScreenState extends State<HealthScreen> {
 
   void _showAddRecordDialog(BuildContext context, String? farmerId) {
     if (farmerId == null) return;
-    
+
     if (_animals.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Add an animal first!")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Add an animal first!")));
       return;
     }
 
@@ -188,37 +224,60 @@ class _HealthScreenState extends State<HealthScreen> {
                 DropdownButtonFormField<String>(
                   value: selectedAnimalId,
                   decoration: const InputDecoration(labelText: "Select Animal"),
-                  items: _animals.map((a) => DropdownMenuItem(value: a.id, child: Text("${a.name} (${a.tagNumber})"))).toList(),
+                  items: _animals
+                      .map(
+                        (a) => DropdownMenuItem(
+                          value: a.id,
+                          child: Text("${a.name} (${a.tagNumber})"),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (v) => setState(() => selectedAnimalId = v),
                 ),
                 DropdownButtonFormField<String>(
                   value: type,
                   decoration: const InputDecoration(labelText: "Record Type"),
-                  items: ['Vaccination', 'Treatment', 'Disease', 'Vet_Visit'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                  items: ['Vaccination', 'Treatment', 'Disease', 'Vet_Visit']
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
                   onChanged: (v) => setState(() => type = v!),
                 ),
                 TextField(
                   controller: descController,
-                  decoration: const InputDecoration(labelText: "Description / Notes", hintText: "e.g., Routine checkup"),
+                  decoration: const InputDecoration(
+                    labelText: "Description / Notes",
+                    hintText: "e.g., Routine checkup",
+                  ),
                   maxLines: 2,
                 ),
                 TextField(
                   controller: medController,
-                  decoration: const InputDecoration(labelText: "Medicines Used (Optional)"),
+                  decoration: const InputDecoration(
+                    labelText: "Medicines Used (Optional)",
+                  ),
                 ),
                 TextField(
                   controller: costController,
-                  decoration: const InputDecoration(labelText: "Cost (Optional)", prefixText: "\$"),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: "Cost (Optional)",
+                    prefixText: "\$",
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                 ),
               ],
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
             ElevatedButton(
               onPressed: () async {
-                if (selectedAnimalId == null || descController.text.isEmpty) return;
+                if (selectedAnimalId == null || descController.text.isEmpty)
+                  return;
 
                 final record = HealthRecordModel(
                   id: '',
@@ -226,7 +285,9 @@ class _HealthScreenState extends State<HealthScreen> {
                   type: type,
                   date: date,
                   description: descController.text,
-                  medicineUsed: medController.text.isEmpty ? null : medController.text,
+                  medicineUsed: medController.text.isEmpty
+                      ? null
+                      : medController.text,
                   cost: double.tryParse(costController.text),
                 );
 
@@ -248,7 +309,10 @@ class _HealthScreenState extends State<HealthScreen> {
         title: const Text("Delete Record?"),
         content: const Text("This cannot be undone."),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {

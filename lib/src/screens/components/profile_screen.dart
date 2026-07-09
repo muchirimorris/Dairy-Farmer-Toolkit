@@ -19,14 +19,13 @@ class ProfileScreen extends StatelessWidget {
       selectedIndex: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.green[700],
-          elevation: 0,
-          title: const Text(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: Text(
             "👤 Farmer Profile",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
         ),
@@ -67,16 +66,22 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           const Text(
             "Not Logged In",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Please log in to view your profile",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -111,7 +116,7 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Text(
               error,
-              style: const TextStyle(color: Colors.grey),
+              style: TextStyle(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
           ),
@@ -138,7 +143,11 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.person_add, size: 64, color: Colors.grey),
+          Icon(
+            Icons.person_add,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           const Text(
             "Profile Not Set Up",
@@ -147,12 +156,17 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             "User ID: ${user.uid}",
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 12,
+            ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Please complete your farmer profile to get started",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -243,10 +257,13 @@ class ProfileScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (nameController.text.isEmpty || farmNameController.text.isEmpty) {
+              if (nameController.text.isEmpty ||
+                  farmNameController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text("Please fill in required fields (Name and Farm Name)"),
+                    content: Text(
+                      "Please fill in required fields (Name and Farm Name)",
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -301,7 +318,7 @@ class ProfileScreen extends StatelessWidget {
           .set(profileData);
 
       Navigator.pop(context); // Close the dialog
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("✅ Profile created successfully!"),
@@ -318,7 +335,11 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildProfileContent(BuildContext context, Map<String, dynamic> data, User user) {
+  Widget _buildProfileContent(
+    BuildContext context,
+    Map<String, dynamic> data,
+    User user,
+  ) {
     final name = data["name"] ?? "Unknown Farmer";
     final email = data["email"] ?? user.email ?? "No email available";
     final phone = data["phone"] ?? "Not provided";
@@ -326,7 +347,7 @@ class ProfileScreen extends StatelessWidget {
     final location = data["location"] ?? "Not set";
     final experience = data["experience"] ?? "0";
     final profileImage = data["profileImage"];
-    final joinDate = data["joinDate"] != null 
+    final joinDate = data["joinDate"] != null
         ? (data["joinDate"] as Timestamp).toDate()
         : user.metadata.creationTime;
 
@@ -336,8 +357,9 @@ class ProfileScreen extends StatelessWidget {
         children: [
           // Profile Header
           Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -347,11 +369,16 @@ class ProfileScreen extends StatelessWidget {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: Colors.green[100],
-                        backgroundImage: profileImage != null 
-                            ? CachedNetworkImageProvider(profileImage) as ImageProvider
+                        backgroundImage: profileImage != null
+                            ? CachedNetworkImageProvider(profileImage)
+                                  as ImageProvider
                             : null,
-                        child: profileImage == null 
-                            ? const Icon(Icons.person, size: 50, color: Colors.green)
+                        child: profileImage == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Colors.green,
+                              )
                             : null,
                       ),
                       Positioned(
@@ -362,9 +389,16 @@ class ProfileScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.green,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              width: 2,
+                            ),
                           ),
-                          child: const Icon(Icons.edit, size: 16, color: Colors.white),
+                          child: const Icon(
+                            Icons.edit,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
@@ -382,7 +416,7 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     email,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
@@ -409,7 +443,13 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Farm Information
-          _buildFarmInfoSection(farmName, location, phone, experience, joinDate),
+          _buildFarmInfoSection(
+            farmName,
+            location,
+            phone,
+            experience,
+            joinDate,
+          ),
           const SizedBox(height: 20),
 
           // Actions Section
@@ -428,19 +468,23 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, snapshot) {
         int totalAnimals = 0;
         int milkingAnimals = 0;
-        
+
         if (snapshot.hasData) {
           final animals = snapshot.data!.docs;
           totalAnimals = animals.length;
           milkingAnimals = animals.where((doc) {
             final animal = doc.data() as Map<String, dynamic>;
-            return (animal["productionStatus"] ?? "").toString().toLowerCase() == "milking";
+            return (animal["productionStatus"] ?? "")
+                    .toString()
+                    .toLowerCase() ==
+                "milking";
           }).length;
         }
 
         return Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -448,18 +492,30 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 const Text(
                   "📊 Farm Overview",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatCard(totalAnimals.toString(), "Total Animals", Icons.pets, Colors.blue),
-                    _buildStatCard(milkingAnimals.toString(), "Milking", Icons.local_drink, Colors.green),
-                    _buildStatCard((data["experience"] ?? "0").toString(), "Years", Icons.work, Colors.orange),
+                    _buildStatCard(
+                      totalAnimals.toString(),
+                      "Total Animals",
+                      Icons.pets,
+                      Colors.blue,
+                    ),
+                    _buildStatCard(
+                      milkingAnimals.toString(),
+                      "Milking",
+                      Icons.local_drink,
+                      Colors.green,
+                    ),
+                    _buildStatCard(
+                      (data["experience"] ?? "0").toString(),
+                      "Years",
+                      Icons.work,
+                      Colors.orange,
+                    ),
                   ],
                 ),
               ],
@@ -470,7 +526,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Container(
@@ -491,20 +552,19 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
 
-  Widget _buildFarmInfoSection(String farmName, String location, String phone, String experience, DateTime? joinDate) {
+  Widget _buildFarmInfoSection(
+    String farmName,
+    String location,
+    String phone,
+    String experience,
+    DateTime? joinDate,
+  ) {
     return Card(
-      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -513,10 +573,7 @@ class ProfileScreen extends StatelessWidget {
           children: [
             const Text(
               "🏠 Farm Information",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             _buildInfoRow(Icons.business, "Farm Name", farmName),
@@ -546,10 +603,7 @@ class ProfileScreen extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w500, color: Colors.grey),
             ),
           ),
           Expanded(
@@ -567,7 +621,6 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildActionsSection(BuildContext context, String userId) {
     return Card(
-      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
@@ -579,7 +632,10 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.settings, color: Colors.grey),
+            leading: Icon(
+              Icons.settings,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             title: const Text("Settings"),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
@@ -590,7 +646,10 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.help, color: Colors.grey),
+            leading: Icon(
+              Icons.help,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             title: const Text("Help & Support"),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
@@ -611,16 +670,29 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showEditProfileDialog(BuildContext context, String userId) async {
-    final userDoc = await FirebaseFirestore.instance.collection("farmers").doc(userId).get();
+    final userDoc = await FirebaseFirestore.instance
+        .collection("farmers")
+        .doc(userId)
+        .get();
     if (!userDoc.exists) return;
 
     final data = userDoc.data() as Map<String, dynamic>;
 
-    final TextEditingController nameController = TextEditingController(text: data["name"] ?? "");
-    final TextEditingController farmNameController = TextEditingController(text: data["farmName"] ?? "");
-    final TextEditingController locationController = TextEditingController(text: data["location"] ?? "");
-    final TextEditingController phoneController = TextEditingController(text: data["phone"] ?? "");
-    final TextEditingController experienceController = TextEditingController(text: data["experience"]?.toString() ?? "");
+    final TextEditingController nameController = TextEditingController(
+      text: data["name"] ?? "",
+    );
+    final TextEditingController farmNameController = TextEditingController(
+      text: data["farmName"] ?? "",
+    );
+    final TextEditingController locationController = TextEditingController(
+      text: data["location"] ?? "",
+    );
+    final TextEditingController phoneController = TextEditingController(
+      text: data["phone"] ?? "",
+    );
+    final TextEditingController experienceController = TextEditingController(
+      text: data["experience"]?.toString() ?? "",
+    );
 
     showDialog(
       context: context,
@@ -681,7 +753,8 @@ class ProfileScreen extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (nameController.text.isEmpty || farmNameController.text.isEmpty) {
+              if (nameController.text.isEmpty ||
+                  farmNameController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Please fill in required fields"),
@@ -692,14 +765,17 @@ class ProfileScreen extends StatelessWidget {
               }
 
               try {
-                await FirebaseFirestore.instance.collection("farmers").doc(userId).update({
-                  "name": nameController.text,
-                  "farmName": farmNameController.text,
-                  "location": locationController.text,
-                  "phone": phoneController.text,
-                  "experience": experienceController.text,
-                  "updatedAt": FieldValue.serverTimestamp(),
-                });
+                await FirebaseFirestore.instance
+                    .collection("farmers")
+                    .doc(userId)
+                    .update({
+                      "name": nameController.text,
+                      "farmName": farmNameController.text,
+                      "location": locationController.text,
+                      "phone": phoneController.text,
+                      "experience": experienceController.text,
+                      "updatedAt": FieldValue.serverTimestamp(),
+                    });
 
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(

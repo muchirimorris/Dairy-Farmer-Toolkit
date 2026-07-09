@@ -26,7 +26,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late Stream<List<AnimalModel>> _animalsStream;
   late Stream<List<MilkLogModel>> _milkLogsStream;
-  
+
   final AnimalRepository _animalRepo = AnimalRepository();
   final MilkLogRepository _milkLogRepo = MilkLogRepository();
 
@@ -37,8 +37,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (user != null) {
       _animalRepo.syncAnimals(user.uid);
       _milkLogRepo.syncMilkLogs(user.uid);
-      _animalsStream = _animalRepo.getAnimalsStream(user.uid).asBroadcastStream();
-      _milkLogsStream = _milkLogRepo.getMilkLogsStream(user.uid).asBroadcastStream();
+      _animalsStream = _animalRepo
+          .getAnimalsStream(user.uid)
+          .asBroadcastStream();
+      _milkLogsStream = _milkLogRepo
+          .getMilkLogsStream(user.uid)
+          .asBroadcastStream();
     }
   }
 
@@ -49,27 +53,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return MainLayout(
       selectedIndex: 0,
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
         appBar: AppBar(
-          backgroundColor: Colors.green[700],
-          elevation: 0,
-          title: const Text(
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          title: Text(
             "👩🏾‍🌾 Farmer Dashboard",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.onPrimary,
             ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications, color: Colors.white),
+              icon: Icon(
+                Icons.notifications,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
               onPressed: () => _showNotifications(context),
               tooltip: "Notifications",
             ),
           ],
         ),
-        body: user == null 
+        body: user == null
             ? _buildNotLoggedInState()
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -110,16 +115,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
           const Text(
             "Not Logged In",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             "Please log in to view your dashboard",
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -143,8 +154,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
 
         return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -166,7 +178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         farmName,
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -174,7 +186,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         "Here's your farm overview for today",
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[500],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -183,10 +195,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green[100],
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.agriculture, color: Colors.green, size: 32),
+                  child: const Icon(
+                    Icons.agriculture,
+                    color: Colors.green,
+                    size: 32,
+                  ),
                 ),
               ],
             ),
@@ -262,8 +278,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final chartData = _prepareChartData(logs);
 
         return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -280,9 +297,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.green[50],
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
@@ -297,10 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Container(
-                  height: 200,
-                  child: _buildSimpleLineChart(chartData),
-                ),
+                Container(height: 200, child: _buildSimpleLineChart(chartData)),
               ],
             ),
           ),
@@ -311,16 +328,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildSimpleLineChart(List<MilkProductionData> data) {
     if (data.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           "No data available",
-          style: TextStyle(color: Colors.grey),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }
 
     final maxValue = data.map((e) => e.liters).reduce((a, b) => a > b ? a : b);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
@@ -332,8 +351,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: data.asMap().entries.map((entry) {
                 final index = entry.key;
                 final item = entry.value;
-                final heightPercentage = maxValue > 0 ? (item.liters / maxValue) : 0;
-                
+                final heightPercentage = maxValue > 0
+                    ? (item.liters / maxValue)
+                    : 0;
+
                 return Expanded(
                   child: Column(
                     children: [
@@ -350,15 +371,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       // Bar
                       Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
-                        height: 100.0 * heightPercentage, 
+                        height: 100.0 * heightPercentage,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.green[400]!,
-                              Colors.green[700]!,
-                            ],
+                            colors: [Colors.green[400]!, Colors.green[700]!],
                           ),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(4),
@@ -372,7 +390,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         item.day,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -388,7 +406,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildChartPlaceholder(String message) {
     return Card(
-      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         height: 200,
@@ -397,11 +414,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.trending_up, size: 48, color: Colors.grey),
+              Icon(
+                Icons.trending_up,
+                size: 48,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 8),
               Text(
                 message,
-                style: const TextStyle(color: Colors.grey, fontSize: 16),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 16,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -428,7 +452,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     for (var log in logs) {
       final date = log.date;
       final quantity = log.quantity;
-      
+
       if (date.isAfter(now.subtract(const Duration(days: 7)))) {
         final key = DateFormat('E').format(date);
         dailyProduction[key] = (dailyProduction[key] ?? 0.0) + quantity;
@@ -454,27 +478,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (snapshot.hasData) {
           final today = DateTime.now();
           final logs = snapshot.data!;
-          
+
           todaysLogs = logs.where((log) {
             final date = log.date;
             return date.year == today.year &&
-                   date.month == today.month &&
-                   date.day == today.day;
+                date.month == today.month &&
+                date.day == today.day;
           }).length;
 
           todaysMilk = logs
               .where((log) {
                 final date = log.date;
                 return date.year == today.year &&
-                       date.month == today.month &&
-                       date.day == today.day;
+                    date.month == today.month &&
+                    date.day == today.day;
               })
               .fold(0.0, (sum, log) => sum + log.quantity);
         }
 
         return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -497,9 +522,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildTodaysStat("Milk Collected", "${todaysMilk.toStringAsFixed(1)} L", Icons.local_drink),
-                    _buildTodaysStat("Milk Sessions", "$todaysLogs", Icons.list_alt),
-                    _buildTodaysStat("Avg per Session", todaysLogs > 0 ? "${(todaysMilk / todaysLogs).toStringAsFixed(1)} L" : "0 L", Icons.analytics),
+                    _buildTodaysStat(
+                      "Milk Collected",
+                      "${todaysMilk.toStringAsFixed(1)} L",
+                      Icons.local_drink,
+                    ),
+                    _buildTodaysStat(
+                      "Milk Sessions",
+                      "$todaysLogs",
+                      Icons.list_alt,
+                    ),
+                    _buildTodaysStat(
+                      "Avg per Session",
+                      todaysLogs > 0
+                          ? "${(todaysMilk / todaysLogs).toStringAsFixed(1)} L"
+                          : "0 L",
+                      Icons.analytics,
+                    ),
                   ],
                 ),
               ],
@@ -518,10 +557,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           padding: EdgeInsets.only(bottom: 12),
           child: Text(
             "Farm Management",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
         GridView.count(
@@ -609,17 +645,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final logs = snapshot.data!;
         if (logs.isEmpty) {
           return Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: const Padding(
-              padding: EdgeInsets.all(20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Icon(Icons.local_drink, size: 48, color: Colors.grey),
+                  Icon(
+                    Icons.local_drink,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                   SizedBox(height: 8),
                   Text(
                     "No recent milk logs",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -630,8 +674,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final recentLogs = logs.take(3).toList();
 
         return Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -660,12 +705,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.local_drink, color: Colors.green, size: 20),
+                        const Icon(
+                          Icons.local_drink,
+                          color: Colors.green,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -673,11 +722,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               Text(
                                 "$quantity L from $animalName",
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 DateFormat('MMM dd, hh:mm a').format(date),
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ),
@@ -694,55 +750,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String subtitle,
+  ) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+      child: Card(
+        color: color.withOpacity(0.05),
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          side: BorderSide(color: color.withOpacity(0.2)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
-                    shape: BoxShape.circle,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: color, size: 20),
                   ),
-                  child: Icon(icon, color: color, size: 20),
-                ),
-                const Spacer(),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+                  const Spacer(),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
               ),
-            ),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -755,17 +819,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 2),
         Text(
           title,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -782,7 +843,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String subtitle,
   ) {
     return Card(
-      elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
@@ -823,7 +883,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 subtitle,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -842,9 +902,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _showNotifications(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("No new notifications")),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("No new notifications")));
   }
 }
 

@@ -98,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade50,
       body: SafeArea(
         child: Column(
           children: [
@@ -155,43 +154,37 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           TextField(
             controller: _loginEmailController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Email",
-              prefixIcon: const Icon(Icons.email),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              prefixIcon: Icon(Icons.email),
             ),
           ),
           const SizedBox(height: 20),
           TextField(
             controller: _loginPasswordController,
             obscureText: true,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Password",
-              prefixIcon: const Icon(Icons.lock),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              prefixIcon: Icon(Icons.lock),
             ),
           ),
           const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: FilledButton(
               onPressed: _loading ? null : _login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
               child: _loading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : const Text(
                       "Login as Farmer",
-                      style: TextStyle(fontSize: 18, color: Colors.white),
+                      style: TextStyle(fontSize: 18),
                     ),
             ),
           ),
@@ -209,54 +202,45 @@ class _LoginScreenState extends State<LoginScreen>
         children: [
           TextField(
             controller: _registerNameController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Full Name",
-              prefixIcon: const Icon(Icons.person),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              prefixIcon: Icon(Icons.person),
             ),
           ),
           const SizedBox(height: 20),
           TextField(
             controller: _registerEmailController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Email",
-              prefixIcon: const Icon(Icons.email),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              prefixIcon: Icon(Icons.email),
             ),
           ),
           const SizedBox(height: 20),
           TextField(
             controller: _registerPasswordController,
             obscureText: true,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Password",
-              prefixIcon: const Icon(Icons.lock),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              prefixIcon: Icon(Icons.lock),
             ),
           ),
           const SizedBox(height: 30),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: FilledButton(
               onPressed: _loading ? null : _register,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
               child: _loading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : const Text(
                       "Register Farmer",
-                      style: TextStyle(fontSize: 18, color: Colors.white),
+                      style: TextStyle(fontSize: 18),
                     ),
             ),
           ),
