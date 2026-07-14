@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -60,7 +59,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 size: 28,
               ),
               onPressed: () {
-                _showAnimalDialog(context, farmerId: user?.uid);
+                _showAnimalDialog(context, farmerId: user?.id);
               },
               tooltip: "Add New Animal",
             ),
@@ -71,7 +70,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
             // Summary Cards
             _buildSummaryCards(context),
             // Animals List
-            Expanded(child: _buildAnimalsList(user?.uid)),
+            Expanded(child: _buildAnimalsList(user?.id)),
           ],
         ),
       ),

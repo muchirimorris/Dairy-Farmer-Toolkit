@@ -50,3 +50,7 @@ app.*.map.json
 *.env
 *.keystore
 *.jks
+
+# Virtual Environments
+venv/
+.env

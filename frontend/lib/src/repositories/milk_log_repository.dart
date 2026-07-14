@@ -23,7 +23,8 @@ class MilkLogRepository {
           animalId: item['animal'],
           farmerId: farmerId,
           date: DateTime.parse(item['date']),
-          liters: item['liters'],
+          quantity: item['liters'],
+          animalName: 'Unknown', // Need to fetch from Animal repository or API
         );
         await _milkBox.put(log.id, log);
       }
@@ -37,7 +38,7 @@ class MilkLogRepository {
       final response = await _apiService.post('/milk-logs/', {
         'animal': log.animalId,
         'date': log.date.toIso8601String(),
-        'liters': log.liters,
+        'liters': log.quantity,
       });
 
       final newLog = MilkLogModel(
@@ -45,7 +46,8 @@ class MilkLogRepository {
         animalId: response['animal'],
         farmerId: log.farmerId,
         date: DateTime.parse(response['date']),
-        liters: response['liters'],
+        quantity: response['liters'],
+        animalName: log.animalName,
       );
       
       await _milkBox.put(newLog.id, newLog);
@@ -71,7 +73,7 @@ class MilkLogRepository {
       final response = await _apiService.put('/milk-logs/${log.id}/', {
         'animal': log.animalId,
         'date': log.date.toIso8601String(),
-        'liters': log.liters,
+        'liters': log.quantity,
       });
 
       final updatedLog = MilkLogModel(
@@ -79,7 +81,8 @@ class MilkLogRepository {
         animalId: response['animal'],
         farmerId: log.farmerId,
         date: DateTime.parse(response['date']),
-        liters: response['liters'],
+        quantity: response['liters'],
+        animalName: log.animalName,
       );
       
       await _milkBox.put(updatedLog.id, updatedLog);
