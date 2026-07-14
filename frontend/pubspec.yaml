@@ -1,0 +1,50 @@
+name: dairy_farmer_toolkit
+description: "A Dairy Farmer Toolkit app with splash screen, authentication, and reusable bottom navigation bar."
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # iOS-style icons (used often in bottom nav bars)
+  cupertino_icons: ^1.0.8
+
+  # State management
+  provider: ^6.1.2
+
+  # Charts
+  fl_chart: ^0.68.0
+
+  # API requests and auth token storage
+  http: ^1.2.0
+  shared_preferences: ^2.2.3
+
+  # Local offline storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  intl: ^0.19.0
+
+  # File/image picking
+  image_picker: ^1.1.2
+  cached_network_image: ^3.3.1
+  flutter_image_compress: ^2.3.0
+  google_fonts: ^8.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.13
+  hive_generator: ^2.0.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/cow.png
