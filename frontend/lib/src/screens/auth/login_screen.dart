@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen>
       final authService = Provider.of<AuthService>(context, listen: false);
       
       await authService.register(
-        _registerNameController.text.trim(),
+        _registerNameController.text.trim().replaceAll(RegExp(r'\s+'), ''),
         _registerEmailController.text.trim(),
         _registerPasswordController.text.trim(),
       );
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen>
           TextField(
             controller: _registerNameController,
             decoration: const InputDecoration(
-              labelText: "Full Name",
+              labelText: "Username (no spaces)",
               prefixIcon: Icon(Icons.person),
             ),
           ),

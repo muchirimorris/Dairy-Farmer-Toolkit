@@ -18,29 +18,64 @@ import 'src/models/health_record_model.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Hive.initFlutter();
-  // Register Adapters
-  Hive.registerAdapter(AnimalModelAdapter());
-  Hive.registerAdapter(MilkLogModelAdapter());
-  Hive.registerAdapter(FinancialRecordModelAdapter());
-  Hive.registerAdapter(FeedInventoryModelAdapter());
-  Hive.registerAdapter(HealthRecordModelAdapter());
+  try {
+    await Hive.initFlutter();
+    // Register Adapters
+    if (!Hive.isAdapterRegistered(0)) Hive.registerAdapter(AnimalModelAdapter());
+    if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(MilkLogModelAdapter());
+    if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(FinancialRecordModelAdapter());
+    if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(FeedInventoryModelAdapter());
+    if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(HealthRecordModelAdapter());
 
-  // Open boxes
-  await Hive.openBox<AnimalModel>('animals');
-  await Hive.openBox<MilkLogModel>('milk_logs');
-  await Hive.openBox<FinancialRecordModel>('financial_records');
-  await Hive.openBox<FeedInventoryModel>('feed_inventory');
-  await Hive.openBox<HealthRecordModel>('health_records');
+    Future<void> safeOpenBox<T>(String boxName) async {
+      try {
+        await Hive.openBox<T>(boxName);
+      } catch (e) {
+        debugPrint('Failed to open $boxName, wiping and retrying: $e');
+        try {
+          await Hive.deleteBoxFromDisk(boxName);
+        } catch (deleteError) {
+          debugPrint('Ignored error during deletion of $boxName: $deleteError');
+        }
+        await Hive.openBox<T>(boxName);
+      }
+    }
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-      ],
-      child: const DairyFarmerToolkit(),
-    ),
-  );
+    // Open boxes
+    await safeOpenBox<AnimalModel>('animals');
+    await safeOpenBox<MilkLogModel>('milk_logs');
+    await safeOpenBox<FinancialRecordModel>('financial_records');
+    await safeOpenBox<FeedInventoryModel>('feed_inventory');
+    await safeOpenBox<HealthRecordModel>('health_records');
+
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AuthService()),
+        ],
+        child: const DairyFarmerToolkit(),
+      ),
+    );
+  } catch (e, stackTrace) {
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Text(
+                  'App Initialization Error:\n$e\n\n$stackTrace',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                  textDirection: TextDirection.ltr,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class DairyFarmerToolkit extends StatelessWidget {

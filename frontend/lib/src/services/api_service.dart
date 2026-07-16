@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 
 class ApiService {
-  // Update this to your local IP or production domain later
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  // Use local network IP for physical device testing
+  static String get baseUrl {
+    return 'http://10.128.77.234:8000/api';
+  }
 
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
