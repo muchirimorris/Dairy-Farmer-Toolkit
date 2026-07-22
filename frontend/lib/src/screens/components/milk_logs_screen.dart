@@ -272,34 +272,17 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  StreamBuilder<List<AnimalModel>>(
-                    stream: _animalsStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: "Loading animals...",
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.pets),
-                          ),
-                          items: const [],
-                          onChanged: null,
-                        );
-                      }
+                  Builder(
+                    builder: (context) {
+                      final milkingAnimals = _animals
+                          .where(
+                            (animal) => (animal.productionStatus)
+                                .toLowerCase()
+                                .contains("milking"),
+                          )
+                          .toList();
 
-                      if (snapshot.hasError) {
-                        return DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: "Error loading animals",
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.error),
-                          ),
-                          items: const [],
-                          onChanged: null,
-                        );
-                      }
-
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      if (_animals.isEmpty) {
                         return DropdownButtonFormField<String>(
                           decoration: const InputDecoration(
                             labelText: "No animals found",
@@ -310,16 +293,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                           onChanged: null,
                         );
                       }
-
-                      final animals = snapshot.data!;
-
-                      final milkingAnimals = animals
-                          .where(
-                            (animal) => (animal.productionStatus)
-                                .toLowerCase()
-                                .contains("milking"),
-                          )
-                          .toList();
 
                       if (milkingAnimals.isEmpty) {
                         return DropdownButtonFormField<String>(
