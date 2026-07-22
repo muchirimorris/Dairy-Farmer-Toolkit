@@ -188,10 +188,17 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
 
           Future<void> saveMilkLog() async {
             if (selectedAnimalId == null || quantityController.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Please fill all required fields"),
-                  backgroundColor: Colors.red,
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Validation Error"),
+                  content: const Text("Please select a milking animal and enter a valid quantity."),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("OK"),
+                    )
+                  ],
                 ),
               );
               return;
@@ -221,6 +228,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               if (docId == null) {
                 await _milkLogRepo.addMilkLog(logModel);
                 if (context.mounted) {
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("✅ Milk log saved for $selectedAnimalName"),
@@ -231,6 +239,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               } else {
                 await _milkLogRepo.updateMilkLog(logModel);
                 if (context.mounted) {
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("✅ Milk log updated for $selectedAnimalName"),
@@ -239,15 +248,17 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   );
                 }
               }
-
-              if (context.mounted) Navigator.pop(context);
             } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("❌ Error saving milk log: $e"),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("❌ Error saving milk log: $e"),
+                    backgroundColor: Colors.red,
+                    duration: const Duration(seconds: 10),
+                  ),
+                );
+              }
             }
           }
 

@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 class ApiService {
   // Use local network IP for physical device testing
   static String get baseUrl {
-    return 'http://10.128.77.234:8000/api';
+    return 'http://10.130.150.234:8000/api';
   }
 
   Future<Map<String, String>> _getHeaders() async {
@@ -92,7 +92,7 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       debugPrint('API Error: ${response.statusCode} - ${response.body}');
-      throw Exception('API Error: ${response.statusCode}');
+      throw Exception('API Error: ${response.statusCode} - ${response.body}');
     }
   }
 }
