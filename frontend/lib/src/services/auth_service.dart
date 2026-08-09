@@ -14,11 +14,14 @@ class AuthService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   User? _currentUser;
   bool _isLoading = false;
+  bool _isInitialized = false;
 
   User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
+  bool get isInitialized => _isInitialized;
 
   AuthService() {
+    ApiService.onLogout = logout;
     _loadUser();
   }
 
@@ -32,7 +35,17 @@ class AuthService extends ChangeNotifier {
     if (token != null && userId != null) {
       _currentUser = User(id: userId, username: username ?? '', email: email ?? '');
       notifyListeners();
+
+      // Verify token validity in background
+      try {
+        await _apiService.get('/me/');
+      } catch (e) {
+        // If it's a hard failure (like 401 after refresh fails), it will have triggered onLogout
+        debugPrint('Background session verification failed: $e');
+      }
     }
+    _isInitialized = true;
+    notifyListeners();
   }
 
   Future<void> login(String username, String password) async {
