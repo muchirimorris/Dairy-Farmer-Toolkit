@@ -154,54 +154,58 @@ class _LoginScreenState extends State<LoginScreen>
       padding: const EdgeInsets.all(20),
       child: Form(
         key: _loginFormKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextFormField(
-              controller: _loginEmailController,
-              decoration: const InputDecoration(
-                labelText: "Username or Email",
-                prefixIcon: Icon(Icons.email),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _loginEmailController,
+                decoration: const InputDecoration(
+                  labelText: "Username or Email",
+                  prefixIcon: Icon(Icons.email),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return "Required";
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) return "Required";
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _loginPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Password",
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _loginPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: "Password",
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Required";
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) return "Required";
-                return null;
-              },
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _loading ? null : _login,
-                child: _loading
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          strokeWidth: 2,
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _loading ? null : _login,
+                  child: _loading
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Login as Farmer",
+                          style: TextStyle(fontSize: 18),
                         ),
-                      )
-                    : const Text(
-                        "Login as Farmer",
-                        style: TextStyle(fontSize: 18),
-                      ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -213,70 +217,74 @@ class _LoginScreenState extends State<LoginScreen>
       padding: const EdgeInsets.all(20),
       child: Form(
         key: _registerFormKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextFormField(
-              controller: _registerNameController,
-              decoration: const InputDecoration(
-                labelText: "Username (no spaces)",
-                prefixIcon: Icon(Icons.person),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _registerNameController,
+                decoration: const InputDecoration(
+                  labelText: "Username (no spaces)",
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return "Required";
+                  if (value.contains(' ')) return "Username cannot contain spaces";
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) return "Required";
-                if (value.contains(' ')) return "Username cannot contain spaces";
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _registerEmailController,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                prefixIcon: Icon(Icons.email),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _registerEmailController,
+                decoration: const InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return "Required";
+                  if (!value.contains('@')) return "Enter a valid email";
+                  return null;
+                },
               ),
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) return "Required";
-                if (!value.contains('@')) return "Enter a valid email";
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _registerPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Password",
-                prefixIcon: Icon(Icons.lock),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _registerPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: "Password",
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return "Required";
+                  if (value.length < 8) return "Password must be at least 8 characters";
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) return "Required";
-                if (value.length < 8) return "Password must be at least 8 characters";
-                return null;
-              },
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _loading ? null : _register,
-                child: _loading
-                    ? SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          strokeWidth: 2,
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _loading ? null : _register,
+                  child: _loading
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Register Farmer",
+                          style: TextStyle(fontSize: 18),
                         ),
-                      )
-                    : const Text(
-                        "Register Farmer",
-                        style: TextStyle(fontSize: 18),
-                      ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
