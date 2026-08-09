@@ -137,6 +137,11 @@ STATIC_URL = 'static/'
 # Custom configurations
 AUTH_USER_MODEL = 'core.Farmer'
 
+AUTHENTICATION_BACKENDS = [
+    'core.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
