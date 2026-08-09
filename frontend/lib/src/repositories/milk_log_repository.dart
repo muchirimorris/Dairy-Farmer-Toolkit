@@ -24,7 +24,7 @@ class MilkLogRepository {
           farmerId: farmerId,
           date: DateTime.parse(item['date']),
           quantity: item['liters'],
-          animalName: 'Unknown', // Need to fetch from Animal repository or API
+          animalName: item['animal_name'] ?? 'Unknown',
         );
         await _milkBox.put(log.id, log);
       }
@@ -47,7 +47,7 @@ class MilkLogRepository {
         farmerId: log.farmerId,
         date: DateTime.parse(response['date']),
         quantity: response['liters'],
-        animalName: log.animalName,
+        animalName: response['animal_name'] ?? log.animalName,
       );
       
       await _milkBox.put(newLog.id, newLog);
@@ -82,7 +82,7 @@ class MilkLogRepository {
         farmerId: log.farmerId,
         date: DateTime.parse(response['date']),
         quantity: response['liters'],
-        animalName: log.animalName,
+        animalName: response['animal_name'] ?? log.animalName,
       );
       
       await _milkBox.put(updatedLog.id, updatedLog);

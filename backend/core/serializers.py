@@ -28,12 +28,16 @@ class AnimalSerializer(serializers.ModelSerializer):
         read_only_fields = ('farmer',)
 
 class MilkLogSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+
     class Meta:
         model = MilkLog
         fields = '__all__'
         read_only_fields = ('farmer',)
 
 class HealthRecordSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+
     class Meta:
         model = HealthRecord
         fields = '__all__'
@@ -46,6 +50,8 @@ class FeedInventorySerializer(serializers.ModelSerializer):
         read_only_fields = ('farmer',)
 
 class FinancialRecordSerializer(serializers.ModelSerializer):
+    animal_name = serializers.CharField(source='animal.name', read_only=True)
+
     class Meta:
         model = FinancialRecord
         fields = '__all__'
