@@ -16,7 +16,7 @@ class Animal(models.Model):
     tag_number = models.CharField(max_length=50)
     name = models.CharField(max_length=100)
     breed = models.CharField(max_length=100)
-    age = models.IntegerField()
+    age = models.FloatField()
     production_status = models.CharField(max_length=50)
     reproductive_status = models.CharField(max_length=50)
     last_calving_date = models.DateField(null=True, blank=True)

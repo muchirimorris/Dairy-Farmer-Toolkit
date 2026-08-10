@@ -272,7 +272,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     String tagNumber,
     String name,
     String breed,
-    int age,
+    double age,
     String productionStatus,
     String reproductiveStatus,
     String? lastCalvingDate,
@@ -537,7 +537,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     String? currentTagNumber,
     String? currentName,
     String? currentBreed,
-    int? currentAge,
+    double? currentAge,
     String? currentProductionStatus,
     String? currentReproductiveStatus,
     String? currentLastCalvingDate,
@@ -696,8 +696,8 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                 // Age
                 TextField(
                   controller: ageController,
-                  decoration: const InputDecoration(labelText: "Age (years) *"),
-                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: "Age (years)"),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 ),
                 const SizedBox(height: 12),
 
@@ -788,7 +788,7 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                               ? nameController.text
                               : "Unnamed",
                           breed: selectedBreed!,
-                          age: int.tryParse(ageController.text) ?? 0,
+                          age: double.tryParse(ageController.text) ?? 0.0,
                           productionStatus: selectedProductionStatus!,
                           reproductiveStatus: selectedReproductiveStatus!,
                           lastCalvingDate: lastCalvingController.text.isNotEmpty

@@ -17,7 +17,7 @@ class AnimalModel extends HiveObject {
   final String breed;
 
   @HiveField(4)
-  final int age;
+  final double age;
 
   @HiveField(5)
   final String productionStatus;
@@ -53,7 +53,7 @@ class AnimalModel extends HiveObject {
       tagNumber: map['tagNumber'] ?? 'No Tag',
       name: map['name'] ?? 'Unnamed',
       breed: map['breed'] ?? 'Unknown',
-      age: map['age']?.toInt() ?? 0,
+      age: (map['age'] as num?)?.toDouble() ?? 0.0,
       productionStatus: map['productionStatus'] ?? 'Unknown',
       reproductiveStatus: map['reproductiveStatus'] ?? 'Unknown',
       lastCalvingDate: map['lastCalvingDate'],

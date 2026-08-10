@@ -21,7 +21,7 @@ class AnimalModelAdapter extends TypeAdapter<AnimalModel> {
       tagNumber: fields[1] as String,
       name: fields[2] as String,
       breed: fields[3] as String,
-      age: fields[4] as int,
+      age: fields[4] as double,
       productionStatus: fields[5] as String,
       reproductiveStatus: fields[6] as String,
       lastCalvingDate: fields[7] as String?,
