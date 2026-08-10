@@ -632,8 +632,11 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       }
     }
 
+    bool isSubmitting = false;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: Text(docId == null ? "Add New Animal" : "Edit Animal"),
@@ -784,84 +787,92 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: isSubmitting ? null : () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () async {
-                // Validation
-                if (tagController.text.isEmpty ||
-                    selectedBreed == null ||
-                    ageController.text.isEmpty ||
-                    selectedProductionStatus == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please fill in all required fields"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      // Validation
+                      if (tagController.text.isEmpty ||
+                          selectedBreed == null ||
+                          ageController.text.isEmpty ||
+                          selectedProductionStatus == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Please fill in all required fields"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
 
-                String? imageUrl = currentImage;
+                      setState(() {
+                        isSubmitting = true;
+                      });
 
-                // Upload new image if selected
-                if (imageFile != null) {
-                  try {
-                    // TODO: Implement file upload to Django backend
-                    // final ref = FirebaseStorage.instance.ref().child(
-                    //   "animals/${DateTime.now().millisecondsSinceEpoch}.jpg",
-                    // );
-                    // await ref.putFile(imageFile!);
-                    // imageUrl = await ref.getDownloadURL();
-                  } catch (e) {
-                    debugPrint("Error uploading image: $e");
-                  }
-                }
+                      try {
+                        String? imageUrl = currentImage;
 
-                final animalModel = AnimalModel(
-                  id: docId ?? '', // temporary ID if new
-                  tagNumber: tagController.text,
-                  name: nameController.text.isNotEmpty
-                      ? nameController.text
-                      : "Unnamed",
-                  breed: selectedBreed!,
-                  age: int.tryParse(ageController.text) ?? 0,
-                  productionStatus: selectedProductionStatus!,
-                  reproductiveStatus: selectedReproductiveStatus!,
-                  lastCalvingDate: lastCalvingController.text.isNotEmpty
-                      ? lastCalvingController.text
-                      : null,
-                  imageUrl: imageUrl,
-                  farmerId: farmerId,
-                );
+                        final animalModel = AnimalModel(
+                          id: docId ?? '', // temporary ID if new
+                          tagNumber: tagController.text,
+                          name: nameController.text.isNotEmpty
+                              ? nameController.text
+                              : "Unnamed",
+                          breed: selectedBreed!,
+                          age: int.tryParse(ageController.text) ?? 0,
+                          productionStatus: selectedProductionStatus!,
+                          reproductiveStatus: selectedReproductiveStatus!,
+                          lastCalvingDate: lastCalvingController.text.isNotEmpty
+                              ? lastCalvingController.text
+                              : null,
+                          imageUrl: imageUrl,
+                          farmerId: farmerId,
+                        );
 
-                try {
-                  if (docId == null) {
-                    await _animalRepo.addAnimal(animalModel);
-                  } else {
-                    await _animalRepo.updateAnimal(animalModel);
-                  }
+                        if (docId == null) {
+                          await _animalRepo.addAnimal(animalModel); // Assuming image uploading is not in repo yet or not required right now
+                        } else {
+                          await _animalRepo.updateAnimal(animalModel); // Wait, earlier code didn't take imageFile as second param
+                        }
 
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "${nameController.text.isNotEmpty ? nameController.text : 'Animal'} ${docId == null ? 'added' : 'updated'} successfully!",
-                      ),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Error saving animal: $e"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: const Text("Save Animal"),
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "${nameController.text.isNotEmpty ? nameController.text : 'Animal'} ${docId == null ? 'added' : 'updated'} successfully!",
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Error saving animal: $e"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (context.mounted) {
+                          setState(() {
+                            isSubmitting = false;
+                          });
+                        }
+                      }
+                    },
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text("Save Animal"),
             ),
           ],
         ),

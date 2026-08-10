@@ -149,6 +149,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       ),
       builder: (context) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setModalState) {
+          bool isSubmitting = false;
           TextEditingController dateController = TextEditingController(
             text: DateFormat('yyyy-MM-dd').format(selectedDate),
           );
@@ -207,6 +208,10 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
             final user = Provider.of<AuthService>(context, listen: false).currentUser;
             if (user == null) return;
 
+            setModalState(() {
+              isSubmitting = true;
+            });
+
             final logDateTime = DateTime(
               selectedDate.year,
               selectedDate.month,
@@ -250,7 +255,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               }
             } catch (e) {
               if (context.mounted) {
-                Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("❌ Error saving milk log: $e"),
@@ -258,6 +262,12 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                     duration: const Duration(seconds: 10),
                   ),
                 );
+              }
+            } finally {
+              if (context.mounted) {
+                setModalState(() {
+                  isSubmitting = false;
+                });
               }
             }
           }
@@ -482,18 +492,27 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: saveMilkLog,
+                          onPressed: isSubmitting ? null : saveMilkLog,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
-                          child: Text(
-                            docId == null ? "Save Log" : "Update Log",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                          ),
+                          child: isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  docId == null ? "Save Log" : "Update Log",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                     ],

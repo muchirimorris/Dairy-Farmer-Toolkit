@@ -213,8 +213,11 @@ class _HealthScreenState extends State<HealthScreen> {
     final costController = TextEditingController();
     DateTime date = DateTime.now();
 
+    bool isSubmitting = false;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           title: const Text("Add Health Record"),
@@ -272,32 +275,61 @@ class _HealthScreenState extends State<HealthScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: isSubmitting ? null : () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () async {
-                if (selectedAnimalId == null || descController.text.isEmpty) {
-                  return;
-                }
+              onPressed: isSubmitting
+                  ? null
+                  : () async {
+                      if (selectedAnimalId == null || descController.text.isEmpty) {
+                        return;
+                      }
 
-                final record = HealthRecordModel(
-                  id: '',
-                  animalId: selectedAnimalId!,
-                  farmerId: farmerId,
-                  type: type,
-                  date: date,
-                  description: descController.text,
-                  medicineUsed: medController.text.isEmpty
-                      ? null
-                      : medController.text,
-                  cost: double.tryParse(costController.text),
-                );
+                      setState(() {
+                        isSubmitting = true;
+                      });
 
-                await _healthRepo.addHealthRecord(record);
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: const Text("Save"),
+                      final record = HealthRecordModel(
+                        id: '',
+                        animalId: selectedAnimalId!,
+                        farmerId: farmerId,
+                        type: type,
+                        date: date,
+                        description: descController.text,
+                        medicineUsed: medController.text.isEmpty
+                            ? null
+                            : medController.text,
+                        cost: double.tryParse(costController.text),
+                      );
+
+                      try {
+                        await _healthRepo.addHealthRecord(record);
+                        if (context.mounted) Navigator.pop(context);
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Error: $e"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (context.mounted) {
+                          setState(() {
+                            isSubmitting = false;
+                          });
+                        }
+                      }
+                    },
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text("Save"),
             ),
           ],
         ),
