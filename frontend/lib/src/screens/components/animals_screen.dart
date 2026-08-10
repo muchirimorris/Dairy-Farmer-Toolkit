@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/animal_model.dart';
 import '../../repositories/animal_repository.dart';
+import 'animal_details_screen.dart';
 
 class AnimalsScreen extends StatefulWidget {
   const AnimalsScreen({super.key});
@@ -408,16 +409,24 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     } else if (value == "delete") {
                       _showDeleteConfirmation(context, id, name);
                     } else if (value == "view_details") {
-                      _showAnimalDetails(context, {
-                        'name': name,
-                        'tagNumber': tagNumber,
-                        'breed': breed,
-                        'age': age,
-                        'productionStatus': productionStatus,
-                        'reproductiveStatus': reproductiveStatus,
-                        'lastCalvingDate': lastCalvingDate,
-                        'imageUrl': imageUrl,
-                      });
+                      final animalModel = AnimalModel(
+                        id: id,
+                        tagNumber: tagNumber,
+                        name: name,
+                        breed: breed,
+                        age: age,
+                        productionStatus: productionStatus,
+                        reproductiveStatus: reproductiveStatus,
+                        lastCalvingDate: lastCalvingDate,
+                        imageUrl: imageUrl,
+                        farmerId: farmerId,
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AnimalDetailsScreen(animal: animalModel),
+                        ),
+                      );
                     }
                   },
                   itemBuilder: (context) => [
@@ -509,49 +518,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
     );
   }
 
-  void _showAnimalDetails(BuildContext context, Map<String, dynamic> animal) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("${animal['name']} Details"),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (animal['imageUrl'] != null)
-                Center(
-                  child: CircleAvatar(
-                    radius: 40,
-                    backgroundImage: NetworkImage(animal['imageUrl']!),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              _buildDetailRow("Tag Number", animal['tagNumber']),
-              _buildDetailRow("Breed", animal['breed']),
-              _buildDetailRow("Age", "${animal['age']} years"),
-              _buildDetailRow("Production Status", animal['productionStatus']),
-              _buildDetailRow(
-                "Reproductive Status",
-                animal['reproductiveStatus'],
-              ),
-              if (animal['lastCalvingDate'] != null)
-                _buildDetailRow(
-                  "Last Calving",
-                  _formatDate(animal['lastCalvingDate']!),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
