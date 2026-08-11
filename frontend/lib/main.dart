@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'src/services/auth_service.dart';
+import 'src/services/theme_service.dart';
 import 'src/navigation/app_navigator.dart';
 import 'src/screens/components/dashboard_screen.dart';
 import 'src/screens/components/animals_screen.dart';
@@ -47,11 +48,13 @@ void main() async {
     await safeOpenBox<FinancialRecordModel>('financial_records');
     await safeOpenBox<FeedInventoryModel>('feed_inventory');
     await safeOpenBox<HealthRecordModel>('health_records');
+    await Hive.openBox('settings');
 
     runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => AuthService()),
+          ChangeNotifierProvider(create: (_) => ThemeService()),
         ],
         child: const DairyFarmerToolkit(),
       ),
@@ -83,142 +86,146 @@ class DairyFarmerToolkit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dairy Farmer Toolkit',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF4F4F5),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF22C55E),
-          primary: const Color(0xFF22C55E),
-          onPrimary: Colors.white,
-          surface: Colors.white,
-          onSurface: const Color(0xFF1F2937),
-          brightness: Brightness.light,
-        ),
-        textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          backgroundColor: Colors.orange,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          color: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        return MaterialApp(
+          title: 'Dairy Farmer Toolkit',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFFF4F4F5),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF22C55E),
+              primary: const Color(0xFF22C55E),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: const Color(0xFF1F2937),
+              brightness: Brightness.light,
+            ),
+            textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
+            appBarTheme: const AppBarTheme(
+              centerTitle: false,
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            cardTheme: CardThemeData(
+              color: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
+              ),
+              clipBehavior: Clip.antiAlias,
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF22C55E), width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF22C55E),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Colors.white,
+              selectedItemColor: Color(0xFF22C55E),
+              unselectedItemColor: Color(0xFF9CA3AF),
+              elevation: 8,
+            ),
           ),
-          clipBehavior: Clip.antiAlias,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            scaffoldBackgroundColor: const Color(0xFF09090B),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFFA3E635),
+              primary: const Color(0xFFA3E635),
+              onPrimary: Colors.black,
+              surface: const Color(0xFF18181B),
+              onSurface: const Color(0xFFFAFAFA),
+              brightness: Brightness.dark,
+            ),
+            textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).apply(
+              bodyColor: const Color(0xFFFAFAFA),
+              displayColor: const Color(0xFFFAFAFA),
+            ),
+            appBarTheme: const AppBarTheme(
+              centerTitle: false,
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            cardTheme: CardThemeData(
+              color: const Color(0xFF18181B),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xFF27272A), width: 1),
+              ),
+              clipBehavior: Clip.antiAlias,
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: const Color(0xFF27272A),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFA3E635), width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFA3E635),
+                foregroundColor: Colors.black,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+              backgroundColor: Color(0xFF18181B),
+              selectedItemColor: Color(0xFFA3E635),
+              unselectedItemColor: Color(0xFFA1A1AA),
+              elevation: 8,
+            ),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF22C55E), width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF22C55E),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Colors.white,
-          selectedItemColor: Color(0xFF22C55E),
-          unselectedItemColor: Color(0xFF9CA3AF),
-          elevation: 8,
-        ),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF09090B),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFA3E635),
-          primary: const Color(0xFFA3E635),
-          onPrimary: Colors.black,
-          surface: const Color(0xFF18181B),
-          onSurface: const Color(0xFFFAFAFA),
-          brightness: Brightness.dark,
-        ),
-        textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme).apply(
-          bodyColor: const Color(0xFFFAFAFA),
-          displayColor: const Color(0xFFFAFAFA),
-        ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          backgroundColor: Colors.orange,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF18181B),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFF27272A), width: 1),
-          ),
-          clipBehavior: Clip.antiAlias,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF27272A),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFA3E635), width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFA3E635),
-            foregroundColor: Colors.black,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color(0xFF18181B),
-          selectedItemColor: Color(0xFFA3E635),
-          unselectedItemColor: Color(0xFFA1A1AA),
-          elevation: 8,
-        ),
-      ),
-      themeMode: ThemeMode.system,
-      home: const AppNavigator(), // Handles Splash → Auth → Dashboard
-      routes: {
-        '/dashboard': (_) => const DashboardScreen(),
-        '/animals': (_) => const AnimalsScreen(),
-        '/milkLogs': (_) => const MilkLogsScreen(),
-        '/finance': (_) => const FinanceScreen(),
-        '/profile': (_) => const ProfileScreen(),
+          themeMode: themeService.themeMode,
+          home: const AppNavigator(), // Handles Splash → Auth → Dashboard
+          routes: {
+            '/dashboard': (_) => const DashboardScreen(),
+            '/animals': (_) => const AnimalsScreen(),
+            '/milkLogs': (_) => const MilkLogsScreen(),
+            '/finance': (_) => const FinanceScreen(),
+            '/profile': (_) => const ProfileScreen(),
+          },
+        );
       },
     );
   }

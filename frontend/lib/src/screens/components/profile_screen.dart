@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/theme_service.dart';
 import 'package:dairy_farmer_toolkit/src/navigation/main_layout.dart';
 import 'package:dairy_farmer_toolkit/src/screens/auth/login_screen.dart';
 
@@ -197,10 +198,26 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildActionsSection(BuildContext context) {
+    final themeService = Provider.of<ThemeService>(context);
+    final isDark = themeService.themeMode == ThemeMode.dark;
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
+          SwitchListTile(
+            secondary: Icon(
+              isDark ? Icons.dark_mode : Icons.light_mode,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            title: const Text("Dark Mode"),
+            value: isDark,
+            onChanged: (value) {
+              themeService.setDarkTheme(value);
+            },
+            activeColor: Theme.of(context).colorScheme.primary,
+          ),
+          const Divider(height: 1),
           ListTile(
             leading: Icon(
               Icons.settings,
