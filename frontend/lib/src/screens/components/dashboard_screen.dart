@@ -55,7 +55,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       selectedIndex: 0,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
           title: Text(
             "👩🏾‍🌾 Farmer Dashboard",
             style: TextStyle(

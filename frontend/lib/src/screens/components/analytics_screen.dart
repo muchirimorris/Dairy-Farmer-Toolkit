@@ -51,7 +51,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          backgroundColor: Colors.blueGrey[800],
         ),
         body: user == null
             ? const Center(child: Text("Please login"))

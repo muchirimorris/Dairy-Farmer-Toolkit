@@ -8,7 +8,6 @@ class BreedingScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Breeding & Reproduction"),
-        backgroundColor: Colors.purple,
       ),
       body: Center(
         child: Column(

@@ -608,7 +608,6 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       selectedIndex: 2,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
           title: Text(
             "🥛 Milk Production",
             style: TextStyle(

@@ -16,7 +16,6 @@ class ProfileScreen extends StatelessWidget {
       selectedIndex: 3,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
           title: Text(
             "👤 Farmer Profile",
             style: TextStyle(

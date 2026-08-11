@@ -43,7 +43,6 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       selectedIndex: 1,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
           title: Text(
             "🐄 My Livestock",
             style: TextStyle(

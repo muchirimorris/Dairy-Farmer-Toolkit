@@ -37,7 +37,6 @@ class _FinanceScreenState extends State<FinanceScreen> {
       selectedIndex: 3, // Finance is index 3
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
           title: const Text(
             "💰 Finance",
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),

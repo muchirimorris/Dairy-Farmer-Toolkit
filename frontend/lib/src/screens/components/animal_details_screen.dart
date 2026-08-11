@@ -63,7 +63,6 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text("${animal.name} Details"),
-          backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           bottom: const TabBar(
             labelColor: Colors.white,

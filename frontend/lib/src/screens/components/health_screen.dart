@@ -68,7 +68,6 @@ class _HealthScreenState extends State<HealthScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.red[700],
         actions: [
           IconButton(
             icon: Icon(

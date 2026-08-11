@@ -33,7 +33,6 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.brown[600],
         title: Text(
           "🌿 Feed Optimization",
           style: TextStyle(

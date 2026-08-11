@@ -100,8 +100,8 @@ class DairyFarmerToolkit extends StatelessWidget {
         textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
         appBarTheme: const AppBarTheme(
           centerTitle: false,
-          backgroundColor: Color(0xFFF4F4F5),
-          foregroundColor: Color(0xFF1F2937),
+          backgroundColor: Colors.orange,
+          foregroundColor: Colors.white,
           elevation: 0,
         ),
         cardTheme: CardThemeData(
@@ -164,8 +164,8 @@ class DairyFarmerToolkit extends StatelessWidget {
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: false,
-          backgroundColor: Color(0xFF09090B),
-          foregroundColor: Color(0xFFFAFAFA),
+          backgroundColor: Colors.orange,
+          foregroundColor: Colors.white,
           elevation: 0,
         ),
         cardTheme: CardThemeData(
