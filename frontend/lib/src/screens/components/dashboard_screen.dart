@@ -55,13 +55,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       selectedIndex: 0,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "👩🏾‍🌾 Farmer Dashboard",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+          title: Row(
+            children: [
+              Icon(Icons.dashboard, color: Theme.of(context).colorScheme.onPrimary),
+              const SizedBox(width: 8),
+              Text(
+                "Farmer Dashboard",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+            ],
           ),
           actions: [
             IconButton(
@@ -155,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Good ${_getTimeOfDayGreeting()}, $farmerName! 👋",
+                    "Good ${_getTimeOfDayGreeting()}, $farmerName!",
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -276,12 +282,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      "📈 Milk Production Trend",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: const [
+                        Icon(Icons.trending_up, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text(
+                          "Milk Production Trend",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(

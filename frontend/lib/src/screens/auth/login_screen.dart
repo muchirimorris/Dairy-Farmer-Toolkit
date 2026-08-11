@@ -113,15 +113,21 @@ class _LoginScreenState extends State<LoginScreen>
               backgroundColor: Colors.transparent,
             ),
             const SizedBox(height: 10),
-            const Text(
-              "🐄 Dairy Farmer Toolkit",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.pets, color: Colors.green, size: 28),
+                SizedBox(width: 8),
+                Text(
+                  "Dairy Farmer Toolkit",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
             ),
-
             const SizedBox(height: 20),
 
             // Tabs

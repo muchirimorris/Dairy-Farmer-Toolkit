@@ -236,7 +236,13 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("✅ Milk log saved for $selectedAnimalName"),
+                      content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text("Milk log saved for $selectedAnimalName")),
+            ],
+          ),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -247,7 +253,13 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("✅ Milk log updated for $selectedAnimalName"),
+                      content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text("Milk log updated for $selectedAnimalName")),
+            ],
+          ),
                       backgroundColor: Colors.blue,
                     ),
                   );
@@ -257,7 +269,13 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text("❌ Error saving milk log: $e"),
+                    content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text("Error saving milk log: $e")),
+            ],
+          ),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 10),
                   ),
@@ -283,13 +301,19 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    docId == null ? "➕ Add Milk Log" : "✏️ Edit Milk Log",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
+                  Row(
+                    children: [
+                      Icon(docId == null ? Icons.add : Icons.edit, color: Colors.green),
+                      const SizedBox(width: 8),
+                      Text(
+                        docId == null ? "Add Milk Log" : "Edit Milk Log",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
 
@@ -608,14 +632,20 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       selectedIndex: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "🥛 Milk Production",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Theme.of(context).colorScheme.onPrimary,
+          title: Row(
+              children: [
+                Icon(Icons.water_drop, color: Theme.of(context).colorScheme.onPrimary),
+                const SizedBox(width: 8),
+                Text(
+                  "Milk Production",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+              ],
             ),
-          ),
           actions: [
             IconButton(
               icon: Icon(
@@ -733,12 +763,9 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                "📈 Quick Stats",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              _buildStatRow(
+                                "Quick Stats",
+                                "",
                               ),
                               const SizedBox(height: 12),
                               _buildStatRow(
@@ -775,13 +802,19 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                       ),
                       const SizedBox(height: 20),
 
-                      const Text(
-                        "🐄 Animal Milk Records",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                  children: const [
+                    Icon(Icons.pets, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text(
+                      "Animal Milk Records",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ],
+                ),
                       const SizedBox(height: 12),
 
                       ...groupedLogs.entries.map((entry) {
@@ -952,11 +985,23 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
+          label == "Quick Stats"
+              ? Row(
+                  children: const [
+                    Icon(Icons.bar_chart, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text(
+                      "Quick Stats",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                )
+              : Text(label, style: const TextStyle(fontSize: 14)),
+          if (value.isNotEmpty)
+            Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
         ],
       ),
     );

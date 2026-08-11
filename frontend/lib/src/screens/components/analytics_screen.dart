@@ -44,12 +44,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           2, // Reusing existing index for layout, though it's technically separate
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "📊 Farm Analytics",
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+          title: Row(
+            children: [
+              Icon(Icons.analytics, color: Theme.of(context).colorScheme.onPrimary),
+              const SizedBox(width: 8),
+              Text(
+                "Farm Analytics",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ),
         body: user == null
@@ -114,9 +120,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "🏆 Top Producer",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                Row(
+                  children: const [
+                    Icon(Icons.emoji_events, color: Colors.amber),
+                    SizedBox(width: 8),
+                    Text(
+                      "Top Producer",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 Card(
@@ -197,9 +209,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "🐄 Herd Distribution",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Row(
+              children: const [
+                Icon(Icons.pets, color: Colors.blue),
+                SizedBox(width: 8),
+                Text(
+                  "Herd Distribution",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Card(

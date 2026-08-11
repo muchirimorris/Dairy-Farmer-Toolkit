@@ -43,13 +43,19 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
       selectedIndex: 1,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "🐄 My Livestock",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+          title: Row(
+            children: [
+              Icon(Icons.pets, color: Theme.of(context).colorScheme.onPrimary),
+              const SizedBox(width: 8),
+              Text(
+                "My Livestock",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+            ],
           ),
           actions: [
             IconButton(
@@ -429,14 +435,35 @@ class _AnimalsScreenState extends State<AnimalsScreen> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: "view_details",
-                      child: Text("📊 View Details"),
+                    PopupMenuItem(
+                      value: "view",
+                      child: Row(
+                        children: const [
+                          Icon(Icons.visibility, size: 20),
+                          SizedBox(width: 8),
+                          Text("View Details"),
+                        ],
+                      ),
                     ),
-                    const PopupMenuItem(value: "edit", child: Text("✏️ Edit")),
-                    const PopupMenuItem(
+                    PopupMenuItem(
+                      value: "edit",
+                      child: Row(
+                        children: const [
+                          Icon(Icons.edit, size: 20),
+                          SizedBox(width: 8),
+                          Text("Edit"),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
                       value: "delete",
-                      child: Text("🗑️ Delete"),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text("Delete", style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
                     ),
                   ],
                 ),

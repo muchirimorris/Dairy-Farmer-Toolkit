@@ -17,13 +17,19 @@ class ProfileScreen extends StatelessWidget {
       selectedIndex: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            "👤 Farmer Profile",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+          title: Row(
+            children: [
+              Icon(Icons.person, color: Theme.of(context).colorScheme.onPrimary),
+              const SizedBox(width: 8),
+              Text(
+                "Farmer Profile",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+            ],
           ),
         ),
         body: user == null
@@ -148,9 +154,15 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "🏠 Farm Information",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Row(
+                    children: const [
+                      Icon(Icons.home, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text(
+                        "Farm Information",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow(Icons.business, "Farm Name", farmName),
