@@ -4,8 +4,10 @@ import '../../services/auth_service.dart';
 import 'package:intl/intl.dart';
 import '../../models/health_record_model.dart';
 import '../../models/animal_model.dart';
+import '../../models/financial_record_model.dart';
 import '../../repositories/health_repository.dart';
 import '../../repositories/animal_repository.dart';
+import '../../repositories/finance_repository.dart';
 
 class HealthScreen extends StatefulWidget {
   const HealthScreen({super.key});
@@ -17,6 +19,7 @@ class HealthScreen extends StatefulWidget {
 class _HealthScreenState extends State<HealthScreen> {
   final HealthRepository _healthRepo = HealthRepository();
   final AnimalRepository _animalRepo = AnimalRepository();
+  final FinanceRepository _financeRepo = FinanceRepository();
 
   late Stream<List<HealthRecordModel>> _healthStream;
   late Stream<List<AnimalModel>> _animalStream;
@@ -310,6 +313,21 @@ class _HealthScreenState extends State<HealthScreen> {
 
                       try {
                         await _healthRepo.addHealthRecord(record);
+                        
+                        if (record.cost != null && record.cost! > 0) {
+                          final financeRecord = FinancialRecordModel(
+                            id: '',
+                            type: 'expense',
+                            amount: record.cost!,
+                            category: 'veterinary',
+                            date: date,
+                            animalId: selectedAnimalId,
+                            farmerId: farmerId,
+                            description: 'Auto-generated from Health Record: $type',
+                          );
+                          await _financeRepo.addRecord(financeRecord);
+                        }
+
                         if (context.mounted) Navigator.pop(context);
                       } catch (e) {
                         if (context.mounted) {

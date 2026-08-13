@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 
 import '../../models/milk_log_model.dart';
 import '../../models/animal_model.dart';
+import '../../models/financial_record_model.dart';
 import '../../repositories/milk_log_repository.dart';
 import '../../repositories/animal_repository.dart';
+import '../../repositories/finance_repository.dart';
 
 class MilkLogsScreen extends StatefulWidget {
   const MilkLogsScreen({super.key});
@@ -23,6 +25,7 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
 
   final MilkLogRepository _milkLogRepo = MilkLogRepository();
   final AnimalRepository _animalRepo = AnimalRepository();
+  final FinanceRepository _financeRepo = FinanceRepository();
 
   String? _selectedAnimalId;
   String? _selectedAnimalName;
@@ -150,6 +153,8 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
       builder: (context) => StatefulBuilder(
         builder: (BuildContext context, StateSetter setModalState) {
           bool isSubmitting = false;
+          bool recordAsSale = false;
+          TextEditingController priceController = TextEditingController();
           TextEditingController dateController = TextEditingController(
             text: DateFormat('yyyy-MM-dd').format(selectedDate),
           );
@@ -232,6 +237,24 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
             try {
               if (docId == null) {
                 await _milkLogRepo.addMilkLog(logModel);
+
+                if (recordAsSale && priceController.text.isNotEmpty) {
+                  double price = double.tryParse(priceController.text) ?? 0.0;
+                  if (price > 0) {
+                    final financeRecord = FinancialRecordModel(
+                      id: '',
+                      type: 'income',
+                      amount: logModel.quantity * price,
+                      category: 'milk_sale',
+                      date: logDateTime,
+                      animalId: logModel.animalId,
+                      farmerId: user.id,
+                      description: 'Auto-generated Milk Sale for ${logModel.animalName}',
+                    );
+                    await _financeRepo.addRecord(financeRecord);
+                  }
+                }
+
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -498,7 +521,31 @@ class _MilkLogsScreenState extends State<MilkLogsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  if (docId == null) ...[
+                    CheckboxListTile(
+                      title: const Text("Record as Sale"),
+                      value: recordAsSale,
+                      onChanged: (val) {
+                        setModalState(() {
+                          recordAsSale = val ?? false;
+                        });
+                      },
+                      controlAffinity: ListTileControlAffinity.leading,
+                    ),
+                    if (recordAsSale)
+                      TextField(
+                        controller: priceController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: "Price per Liter *",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.attach_money),
+                          hintText: "e.g., 1.50",
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                  ],
 
                   Row(
                     children: [

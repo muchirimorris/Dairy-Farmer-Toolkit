@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../models/feed_inventory_model.dart';
+import '../../models/financial_record_model.dart';
 import '../../repositories/feed_repository.dart';
+import '../../repositories/finance_repository.dart';
 
 class FeedOptimizationScreen extends StatefulWidget {
   const FeedOptimizationScreen({super.key});
@@ -13,6 +15,7 @@ class FeedOptimizationScreen extends StatefulWidget {
 
 class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
   final FeedRepository _feedRepo = FeedRepository();
+  final FinanceRepository _financeRepo = FinanceRepository();
   late Stream<List<FeedInventoryModel>> _feedStream;
 
   @override
@@ -222,6 +225,7 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
     final nameController = TextEditingController();
     final qtyController = TextEditingController();
     final thresholdController = TextEditingController();
+    final costController = TextEditingController();
     String type = 'Hay';
     String unit = 'kg';
 
@@ -281,6 +285,14 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                   ),
                   keyboardType: TextInputType.number,
                 ),
+                TextField(
+                  controller: costController,
+                  decoration: const InputDecoration(
+                    labelText: "Total Cost (Optional)",
+                    prefixText: "\$",
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                ),
               ],
             ),
           ),
@@ -297,18 +309,33 @@ class _FeedOptimizationScreenState extends State<FeedOptimizationScreen> {
                     double.tryParse(thresholdController.text) ?? 0;
 
                 if (name.isNotEmpty && qty > 0) {
+                  final cost = double.tryParse(costController.text) ?? 0.0;
                   final item = FeedInventoryModel(
                     id: '',
                     type: type,
                     name: name,
                     quantity: qty,
                     unit: unit,
-                    cost: 0,
+                    cost: cost > 0 ? (cost / qty) : 0, // Store cost per unit
                     purchaseDate: DateTime.now(),
                     threshold: threshold,
                     farmerId: farmerId,
                   );
                   await _feedRepo.addFeedItem(item);
+                  
+                  if (cost > 0) {
+                    final financeRecord = FinancialRecordModel(
+                      id: '',
+                      type: 'expense',
+                      amount: cost,
+                      category: 'feed',
+                      date: DateTime.now(),
+                      farmerId: farmerId,
+                      description: 'Auto-generated Feed Purchase: $name',
+                    );
+                    await _financeRepo.addRecord(financeRecord);
+                  }
+
                   if (context.mounted) Navigator.pop(context);
                 }
               },
