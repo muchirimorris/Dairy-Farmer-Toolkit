@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
@@ -14,6 +15,24 @@ import 'package:intl/intl.dart';
 
 import '../../models/animal_model.dart';
 import '../../models/milk_log_model.dart';
+import '../../models/health_record_model.dart';
+import '../../models/financial_record_model.dart';
+
+class ActivityItem {
+  final DateTime date;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color iconColor;
+
+  ActivityItem({
+    required this.date,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.iconColor,
+  });
+}
 import '../../repositories/animal_repository.dart';
 import '../../repositories/milk_log_repository.dart';
 
@@ -629,20 +648,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildRecentActivity() {
-    return StreamBuilder<List<MilkLogModel>>(
-      stream: _milkLogsStream,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Card(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
+    return ValueListenableBuilder(
+      valueListenable: Listenable.merge([
+        Hive.box<MilkLogModel>('milk_logs').listenable(),
+        Hive.box<HealthRecordModel>('health_records').listenable(),
+        Hive.box<FinancialRecordModel>('financial_records').listenable(),
+      ]),
+      builder: (context, _, __) {
+        final farmerId = Provider.of<AuthService>(context, listen: false).currentUser?.id ?? '';
+        
+        List<ActivityItem> items = [];
+        
+        // Milk Logs
+        final milkBox = Hive.box<MilkLogModel>('milk_logs');
+        for (var log in milkBox.values.where((l) => l.farmerId == farmerId)) {
+          items.add(ActivityItem(
+            date: log.date,
+            title: "${log.quantity} L from ${log.animalName}",
+            subtitle: "Milk Log",
+            icon: Icons.local_drink,
+            iconColor: Colors.green,
+          ));
         }
 
-        final logs = snapshot.data!;
-        if (logs.isEmpty) {
+        // Health Records
+        final healthBox = Hive.box<HealthRecordModel>('health_records');
+        for (var rec in healthBox.values.where((h) => h.farmerId == farmerId)) {
+          items.add(ActivityItem(
+            date: rec.date,
+            title: "${rec.type.toUpperCase()}",
+            subtitle: rec.description.isNotEmpty ? rec.description : "Health Record",
+            icon: Icons.medical_services,
+            iconColor: Colors.blue,
+          ));
+        }
+
+        // Financial Records
+        final financeBox = Hive.box<FinancialRecordModel>('financial_records');
+        for (var fin in financeBox.values.where((f) => f.farmerId == farmerId)) {
+          bool isIncome = fin.type.toLowerCase() == 'income';
+          items.add(ActivityItem(
+            date: fin.date,
+            title: "${isIncome ? '+' : '-'}\$${fin.amount.toStringAsFixed(2)}",
+            subtitle: fin.description ?? fin.category.toUpperCase(),
+            icon: isIncome ? Icons.trending_up : Icons.trending_down,
+            iconColor: isIncome ? Colors.green : Colors.red,
+          ));
+        }
+
+        items.sort((a, b) => b.date.compareTo(a.date));
+        final recentItems = items.take(10).toList();
+
+        if (recentItems.isEmpty) {
           return Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -652,13 +709,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 children: [
                   Icon(
-                    Icons.local_drink,
+                    Icons.history,
                     size: 48,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    "No recent milk logs",
+                    "No recent activity",
                     style: TextStyle(
                       fontSize: 16,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -669,8 +726,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           );
         }
-
-        final recentLogs = logs.take(3).toList();
 
         return Card(
           shape: RoundedRectangleBorder(
@@ -695,44 +750,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...recentLogs.map((log) {
-                  final quantity = log.quantity;
-                  final animalName = log.animalName;
-                  final date = log.date;
-
+                ...recentItems.map((item) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.local_drink,
-                          color: Colors.green,
-                          size: 20,
-                        ),
+                        Icon(item.icon, color: item.iconColor, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "$quantity L from $animalName",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                item.title,
+                                style: const TextStyle(fontWeight: FontWeight.w500),
                               ),
-                              Text(
-                                DateFormat('MMM dd, hh:mm a').format(date),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    item.subtitle,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                  Text(
+                                    DateFormat('MMM dd, hh:mm a').format(item.date),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
