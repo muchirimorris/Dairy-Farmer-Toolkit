@@ -34,7 +34,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
     final user = Provider.of<AuthService>(context, listen: false).currentUser;
 
     return MainLayout(
-      selectedIndex: 3, // Finance is index 3
+      selectedIndex: 3, 
       child: Scaffold(
         appBar: AppBar(
           title: Row(
