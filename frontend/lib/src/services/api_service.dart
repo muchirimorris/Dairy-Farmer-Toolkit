@@ -8,7 +8,7 @@ class ApiService {
 
   // Use local network IP for physical device testing
   static String get baseUrl {
-    return 'http://:8000/api';
+    return 'http:0.0.0.0//:8000/api';
   }
 
   Future<Map<String, String>> _getHeaders() async {
